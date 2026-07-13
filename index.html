@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <title>修理報告書</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+</head>
+<body>
+
+<div id="overlay" class="overlay hidden">
+  <div class="spinner"></div>
+  <div id="overlay-text" class="overlay-text">送信中...</div>
+</div>
+
+<header class="app-header">
+  <span class="app-title">狩野設備工業 修理報告書</span>
+  <button id="theme-toggle" class="icon-btn" type="button">🌙</button>
+</header>
+
+<main id="app">
+
+  <!-- 起動中 -->
+  <section id="screen-loading" class="screen">
+    <div class="center-box">
+      <div class="spinner"></div>
+      <p>読み込み中...</p>
+    </div>
+  </section>
+
+  <!-- 初回社員登録 -->
+  <section id="screen-register" class="screen hidden">
+    <h2>初回登録</h2>
+    <p>LINEアカウント「<span id="register-display-name"></span>」を社員情報に登録します。</p>
+    <label>社員番号<br><input id="register-staff-id" type="text" inputmode="numeric" placeholder="例: 0012"></label>
+    <label>氏名<br><input id="register-staff-name" type="text" placeholder="例: 田中太郎"></label>
+    <button class="btn btn-primary" id="btn-register-submit" type="button">登録する</button>
+  </section>
+
+  <!-- メインメニュー -->
+  <section id="screen-home" class="screen hidden">
+    <div id="user-info" class="user-info"></div>
+    <button class="btn btn-primary btn-large" id="btn-new-report" type="button">➕ 修理報告書を作成</button>
+    <button class="btn btn-secondary btn-large" id="btn-search" type="button">🔍 過去の報告書を検索</button>
+  </section>
+
+  <!-- 入力①基本情報 -->
+  <section id="screen-form-1" class="screen hidden">
+    <div class="step-header">
+      <button class="btn-link" data-back="screen-home">← 戻る</button>
+      <span class="step-dots">●○○○○○ 1/6</span>
+    </div>
+    <label>受付番号<br><input id="f-receipt-preview" type="text" disabled></label>
+    <label>工事日<br><input id="f-work-date" type="date"></label>
+    <label>開始時間<br><input id="f-start-time" type="time"></label>
+    <label>終了時間<br><input id="f-end-time" type="time"></label>
+    <label>お客様名<br><input id="f-customer-name" type="text"></label>
+    <label>住所<br>
+      <div class="input-with-btn">
+        <input id="f-address" type="text">
+        <button class="btn-small" id="btn-gps" type="button">📍現在地</button>
+      </div>
+    </label>
+    <label>電話番号<br><input id="f-phone" type="tel" inputmode="tel"></label>
+    <div class="readonly-field">担当者: <span id="f-staff-display"></span></div>
+    <button class="btn btn-primary" data-next="screen-form-2" data-validate="1" type="button">次へ →</button>
+  </section>
+
+  <!-- 入力②設備情報 -->
+  <section id="screen-form-2" class="screen hidden">
+    <div class="step-header">
+      <button class="btn-link" data-back="screen-form-1">← 戻る</button>
+      <span class="step-dots">●●○○○○ 2/6</span>
+    </div>
+    <label>設備名称<br><select id="f-equipment-name"></select></label>
+    <label>メーカー<br><select id="f-maker"></select></label>
+    <label>型式<br><input id="f-model" type="text"></label>
+    <label>製造番号<br><input id="f-serial-no" type="text"></label>
+    <button class="btn btn-primary" data-next="screen-form-3" data-validate="2" type="button">次へ →</button>
+  </section>
+
+  <!-- 入力③故障・修理内容 -->
+  <section id="screen-form-3" class="screen hidden">
+    <div class="step-header">
+      <button class="btn-link" data-back="screen-form-2">← 戻る</button>
+      <span class="step-dots">●●●○○○ 3/6</span>
+    </div>
+    <label>故障内容
+      <div class="input-with-btn">
+        <textarea id="f-trouble" rows="3"></textarea>
+        <button class="mic-btn" data-target="f-trouble" type="button">🎤</button>
+      </div>
+    </label>
+    <label>原因
+      <div class="input-with-btn">
+        <textarea id="f-cause" rows="3"></textarea>
+        <button class="mic-btn" data-target="f-cause" type="button">🎤</button>
+      </div>
+    </label>
+    <label>修理内容
+      <div class="input-with-btn">
+        <textarea id="f-repair" rows="3"></textarea>
+        <button class="mic-btn" data-target="f-repair" type="button">🎤</button>
+      </div>
+    </label>
+    <button class="btn btn-primary" data-next="screen-form-4" data-validate="3" type="button">次へ →</button>
+  </section>
+
+  <!-- 入力④交換部品 -->
+  <section id="screen-form-4" class="screen hidden">
+    <div class="step-header">
+      <button class="btn-link" data-back="screen-form-3">← 戻る</button>
+      <span class="step-dots">●●●●○○ 4/6</span>
+    </div>
+    <div id="parts-list"></div>
+    <button class="btn btn-secondary" id="btn-add-part" type="button">＋ 部品を追加</button>
+    <div class="parts-total">部品合計金額: <span id="parts-total-amount">0</span> 円</div>
+    <button class="btn btn-primary" data-next="screen-form-5" type="button">次へ →</button>
+  </section>
+
+  <!-- 入力⑤写真・動画 -->
+  <section id="screen-form-5" class="screen hidden">
+    <div class="step-header">
+      <button class="btn-link" data-back="screen-form-4">← 戻る</button>
+      <span class="step-dots">●●●●●○ 5/6</span>
+    </div>
+    <p>写真(最大10枚) 現在 <span id="photo-count">0</span>/10</p>
+    <div id="photo-grid" class="photo-grid"></div>
+    <input type="file" id="photo-input" accept="image/*" capture="environment" multiple class="hidden">
+    <button class="btn btn-secondary" id="btn-add-photo" type="button">📷 写真を追加</button>
+
+    <p style="margin-top:20px">動画(任意・1本まで、長い動画は送信に失敗しやすいため短く撮影してください)</p>
+    <input type="file" id="video-input" accept="video/*" capture="environment" class="hidden">
+    <button class="btn btn-secondary" id="btn-add-video" type="button">🎥 動画を撮影/選択</button>
+    <div id="video-status"></div>
+
+    <button class="btn btn-primary" data-next="screen-form-6" type="button">次へ →</button>
+  </section>
+
+  <!-- 入力⑥サイン・備考 -->
+  <section id="screen-form-6" class="screen hidden">
+    <div class="step-header">
+      <button class="btn-link" data-back="screen-form-5">← 戻る</button>
+      <span class="step-dots">●●●●●● 6/6</span>
+    </div>
+    <label>お客様サイン</label>
+    <canvas id="signature-canvas" width="320" height="160"></canvas>
+    <button class="btn-small" id="btn-signature-clear" type="button">やり直す</button>
+
+    <label>作業員コメント
+      <div class="input-with-btn">
+        <textarea id="f-comment" rows="3"></textarea>
+        <button class="mic-btn" data-target="f-comment" type="button">🎤</button>
+      </div>
+    </label>
+    <label>次回点検予定<br><input id="f-next-check-date" type="date"></label>
+    <label>請求区分<br><select id="f-billing-type"></select></label>
+
+    <button class="btn btn-primary" id="btn-go-confirm" type="button">確認画面へ →</button>
+  </section>
+
+  <!-- 確認画面 -->
+  <section id="screen-confirm" class="screen hidden">
+    <h2>入力内容の確認</h2>
+    <div id="confirm-content"></div>
+    <button class="btn btn-primary btn-large" id="btn-submit-report" type="button">この内容で送信する</button>
+  </section>
+
+  <!-- 送信中 -->
+  <section id="screen-sending" class="screen hidden">
+    <div class="center-box">
+      <div class="spinner"></div>
+      <p id="sending-message">送信中です。しばらくお待ちください...</p>
+    </div>
+  </section>
+
+  <!-- 完了画面 -->
+  <section id="screen-done" class="screen hidden">
+    <div class="center-box">
+      <div class="done-check">✅</div>
+      <p>報告書を送信しました</p>
+      <p id="done-receipt-no" class="done-receipt-no"></p>
+      <a id="done-pdf-link" class="btn btn-secondary" href="#" target="_blank">PDFを見る</a>
+      <button class="btn btn-primary" id="btn-close-app" type="button">閉じる</button>
+      <button class="btn btn-link" id="btn-back-home" type="button">メインメニューに戻る</button>
+    </div>
+  </section>
+
+  <!-- 検索画面 -->
+  <section id="screen-search" class="screen hidden">
+    <div class="step-header">
+      <button class="btn-link" data-back="screen-home">← 戻る</button>
+    </div>
+    <h2>過去の報告書を検索</h2>
+    <p class="hint">お客様名・設備名・型式・住所・受付番号のいずれかで検索できます</p>
+    <input id="search-keyword" type="text" placeholder="キーワードを入力(空欄で全件)">
+    <button class="btn btn-primary" id="btn-search-submit" type="button">検索</button>
+    <div id="search-result-list" class="search-result-list"></div>
+  </section>
+
+  <!-- 検索結果詳細 -->
+  <section id="screen-search-detail" class="screen hidden">
+    <div class="step-header">
+      <button class="btn-link" data-back="screen-search">← 検索結果に戻る</button>
+    </div>
+    <div id="search-detail-content"></div>
+  </section>
+
+  <!-- エラー -->
+  <section id="screen-error" class="screen hidden">
+    <div class="center-box">
+      <p>⚠️ エラーが発生しました</p>
+      <p id="error-message"></p>
+      <button class="btn btn-primary" id="btn-error-retry" type="button">最初からやり直す</button>
+    </div>
+  </section>
+
+</main>
+
+<script src="camera.js"></script>
+<script src="signature.js"></script>
+<script src="voice.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

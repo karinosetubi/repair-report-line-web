@@ -1,0 +1,181 @@
+  :root {
+    --bg: #f5f6f8;
+    --surface: #ffffff;
+    --text: #1c1c1e;
+    --text-sub: #6b7280;
+    --border: #d9dde3;
+    --primary: #1a73e8;
+    --primary-text: #ffffff;
+    --secondary: #eef1f5;
+    --secondary-text: #1c1c1e;
+    --danger: #d93025;
+    --success: #1e8e3e;
+  }
+  html[data-theme="dark"] {
+    --bg: #121212;
+    --surface: #1e1e1e;
+    --text: #f2f2f2;
+    --text-sub: #a0a0a0;
+    --border: #3a3a3a;
+    --primary: #4d9dff;
+    --primary-text: #0b0b0b;
+    --secondary: #2a2a2a;
+    --secondary-text: #f2f2f2;
+    --danger: #ff6b6b;
+    --success: #55c073;
+  }
+  @media (prefers-color-scheme: dark) {
+    html:not([data-theme="light"]) {
+      --bg: #121212;
+      --surface: #1e1e1e;
+      --text: #f2f2f2;
+      --text-sub: #a0a0a0;
+      --border: #3a3a3a;
+      --primary: #4d9dff;
+      --primary-text: #0b0b0b;
+      --secondary: #2a2a2a;
+      --secondary-text: #f2f2f2;
+      --danger: #ff6b6b;
+      --success: #55c073;
+    }
+  }
+
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", sans-serif;
+    font-size: 16px;
+  }
+  .hidden { display: none !important; }
+
+  .app-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 16px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    position: sticky; top: 0; z-index: 10;
+  }
+  .app-title { font-weight: bold; font-size: 16px; }
+  .icon-btn {
+    border: none; background: transparent; font-size: 20px; cursor: pointer; padding: 4px 8px;
+  }
+
+  main { padding: 16px 16px 40px; max-width: 480px; margin: 0 auto; }
+
+  .screen h2 { margin-top: 0; }
+  .hint { color: var(--text-sub); font-size: 14px; }
+
+  label { display: block; margin: 14px 0 4px; font-weight: 600; font-size: 14px; }
+  input[type=text], input[type=tel], input[type=date], input[type=time], input[type=number],
+  textarea, select {
+    width: 100%;
+    padding: 12px;
+    font-size: 16px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--surface);
+    color: var(--text);
+    margin-top: 4px;
+  }
+  input:disabled { color: var(--text-sub); background: var(--secondary); }
+  textarea { resize: vertical; }
+
+  .input-with-btn { display: flex; gap: 8px; align-items: stretch; }
+  .input-with-btn input, .input-with-btn textarea { flex: 1; }
+
+  .btn {
+    display: block;
+    width: 100%;
+    min-height: 56px;
+    font-size: 18px;
+    font-weight: bold;
+    border: none;
+    border-radius: 12px;
+    margin-top: 16px;
+    cursor: pointer;
+  }
+  .btn-primary { background: var(--primary); color: var(--primary-text); }
+  .btn-secondary { background: var(--secondary); color: var(--secondary-text); }
+  .btn-large { font-size: 20px; }
+  .btn-link {
+    background: transparent; border: none; color: var(--primary);
+    font-size: 15px; cursor: pointer; padding: 8px 0; display: block; text-align: center;
+  }
+  .btn-small {
+    min-height: 44px; padding: 0 14px; border-radius: 8px; border: 1px solid var(--border);
+    background: var(--secondary); color: var(--secondary-text); font-size: 15px; cursor: pointer;
+  }
+  .mic-btn {
+    min-width: 48px; border-radius: 8px; border: 1px solid var(--border);
+    background: var(--secondary); font-size: 20px; cursor: pointer;
+  }
+  .mic-btn.recording { background: var(--danger); color: #fff; }
+
+  .step-header {
+    display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;
+  }
+  .step-dots { font-size: 13px; color: var(--text-sub); letter-spacing: 2px; }
+
+  .user-info {
+    text-align: center; color: var(--text-sub); margin-bottom: 24px; font-size: 14px;
+  }
+
+  .center-box { text-align: center; padding: 60px 20px; }
+  .spinner {
+    width: 40px; height: 40px; margin: 0 auto 16px;
+    border: 4px solid var(--border); border-top-color: var(--primary);
+    border-radius: 50%; animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.55);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    z-index: 100; color: #fff;
+  }
+  .overlay .spinner { border-color: rgba(255,255,255,0.3); border-top-color: #fff; }
+  .overlay-text { margin-top: 8px; }
+
+  .photo-grid {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 8px;
+  }
+  .photo-thumb {
+    position: relative; aspect-ratio: 1/1; border-radius: 8px; overflow: hidden;
+    border: 1px solid var(--border); background: var(--secondary);
+  }
+  .photo-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .photo-thumb .remove-btn {
+    position: absolute; top: 2px; right: 2px; background: rgba(0,0,0,0.6); color: #fff;
+    border: none; border-radius: 50%; width: 22px; height: 22px; font-size: 13px; cursor: pointer;
+  }
+
+  #signature-canvas {
+    width: 100%; max-width: 320px; height: 160px;
+    border: 1px solid var(--border); border-radius: 8px; background: #fff; touch-action: none;
+    display: block;
+  }
+
+  .parts-list-row {
+    display: grid; grid-template-columns: 2fr 1fr 1fr auto; gap: 6px; align-items: center; margin-top: 8px;
+  }
+  .parts-list-row input { margin-top: 0; }
+  .parts-total { text-align: right; margin-top: 12px; font-weight: bold; }
+
+  .readonly-field { margin-top: 14px; color: var(--text-sub); font-size: 14px; }
+
+  .confirm-row { padding: 8px 0; border-bottom: 1px solid var(--border); }
+  .confirm-row .label { font-size: 12px; color: var(--text-sub); }
+  .confirm-row .value { font-size: 15px; white-space: pre-wrap; }
+
+  .done-check { font-size: 48px; }
+  .done-receipt-no { font-weight: bold; font-size: 18px; }
+
+  .search-result-list { margin-top: 16px; }
+  .search-card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+    padding: 12px; margin-bottom: 10px; cursor: pointer;
+  }
+  .search-card .title { font-weight: bold; }
+  .search-card .sub { color: var(--text-sub); font-size: 13px; }
