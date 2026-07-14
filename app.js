@@ -1,6 +1,7 @@
   // ===== 設定(LIFFアプリやGASのデプロイをやり直したらここを更新する) =====
   var LIFF_ID = '2010686947-KFPaPxQD';
-  var API_BASE_URL = 'https://script.google.com/macros/s/AKfycbzrlPKYC5iTDff1TBld9qcjy_bn44bKtuwjjU0DeMkzVsJJbnSUvY2qIOQXBzN_z2_dqw/exec';
+  var API_BASE_URL = https://script.google.com/macros/s/AKfycby9CioempNx2RqXbGdD_waPGE5au4YtvXReLqbY31F6vQ2TbFjrcr-0oUYiRkZPaMd1lw/exec
+KtuwjjU0DeMkzVsJJbnSUvY2qIOQXBzN_z2_dqw/exec';
   // GETのURLに乗せるには大きすぎる(写真等を含む)場合はPOSTに自動で切り替える
   var API_GET_LENGTH_LIMIT = 6000;
 
