@@ -177,6 +177,9 @@
     document.getElementById('photo-count').textContent = '0';
     document.getElementById('video-status').textContent = '';
     clearSignature_();
+    var sigStatus = document.getElementById('signature-status');
+    sigStatus.textContent = '未サイン';
+    sigStatus.classList.remove('signed');
     renderPartsList_();
   }
 
