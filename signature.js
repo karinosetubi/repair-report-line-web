@@ -3,8 +3,9 @@
   function initSignaturePad_() {
     sigCanvas = document.getElementById('signature-canvas');
     sigCtx = sigCanvas.getContext('2d');
-    sigCtx.lineWidth = 2.5;
+    sigCtx.lineWidth = 4;
     sigCtx.lineCap = 'round';
+    sigCtx.lineJoin = 'round';
     sigCtx.strokeStyle = '#000000';
 
     sigCanvas.addEventListener('pointerdown', function (e) {
@@ -13,6 +14,7 @@
       var pos = getSigPos_(e);
       sigCtx.beginPath();
       sigCtx.moveTo(pos.x, pos.y);
+      e.preventDefault();
     });
     sigCanvas.addEventListener('pointermove', function (e) {
       if (!sigDrawing) return;
