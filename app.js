@@ -124,12 +124,40 @@
           showScreen_('screen-register');
         } else {
           showHomeScreen_(result.profile, result.masters);
+          // ホーム画面のスマホショートカットから「?start=new」付きで開いた場合、
+          // メインメニューを経由せず新規作成画面まで自動で進める(タップ数を減らすため)。
+          if (getStartParam_() === 'new') {
+            startNewReport_();
+          }
         }
       });
     }).catch(function (err) {
       clearTimeout(timeoutId);
       showError_(err);
     });
+  }
+
+  /**
+   * LIFFのURLに付けた「?start=new」等のクエリを取り出す。LIFF URL(https://liff.line.me/{id}?start=new)
+   * で開かれた場合、LINE側でエンドポイントURLに ?liff.state=<urlエンコードされた元のクエリ> という形で
+   * 転送されてくるため、liff.stateがあればそちらを、無ければ通常のクエリをそのまま見る。
+   */
+  function getStartParam_() {
+    var params = new URLSearchParams(window.location.search);
+    var raw = params.get('liff.state') || window.location.search;
+    var qIndex = raw.indexOf('?');
+    var qs = qIndex >= 0 ? raw.substring(qIndex + 1) : raw;
+    return new URLSearchParams(qs).get('start');
+  }
+
+  function startNewReport_() {
+    resetFormData_();
+    showOverlay_('受付番号を確認中...');
+    return runServer_('previewNextReceiptNumber', idToken).then(function (no) {
+      hideOverlay_();
+      document.getElementById('f-receipt-preview').value = no;
+      showScreen_('screen-form-1');
+    }).catch(showError_);
   }
 
   function showHomeScreen_(profile, masters) {
@@ -410,13 +438,7 @@
     });
 
     document.getElementById('btn-new-report').addEventListener('click', function () {
-      resetFormData_();
-      showOverlay_('受付番号を確認中...');
-      runServer_('previewNextReceiptNumber', idToken).then(function (no) {
-        hideOverlay_();
-        document.getElementById('f-receipt-preview').value = no;
-        showScreen_('screen-form-1');
-      }).catch(showError_);
+      startNewReport_();
     });
     document.getElementById('btn-search').addEventListener('click', function () {
       document.getElementById('search-keyword').value = '';
