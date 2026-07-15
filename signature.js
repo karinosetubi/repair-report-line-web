@@ -3,10 +3,6 @@
   function initSignaturePad_() {
     sigCanvas = document.getElementById('signature-canvas');
     sigCtx = sigCanvas.getContext('2d');
-    sigCtx.lineWidth = 4;
-    sigCtx.lineCap = 'round';
-    sigCtx.lineJoin = 'round';
-    sigCtx.strokeStyle = '#000000';
 
     sigCanvas.addEventListener('pointerdown', function (e) {
       sigDrawing = true;
@@ -30,13 +26,41 @@
     document.getElementById('btn-signature-clear').addEventListener('click', function () {
       clearSignature_();
     });
+    document.getElementById('btn-signature-open').addEventListener('click', openSignatureOverlay_);
+    document.getElementById('btn-signature-done').addEventListener('click', closeSignatureOverlay_);
+  }
+
+  function openSignatureOverlay_() {
+    var overlay = document.getElementById('signature-overlay');
+    overlay.classList.remove('hidden');
+
+    var rect = sigCanvas.getBoundingClientRect();
+    var ratio = window.devicePixelRatio || 1;
+    sigCanvas.width = Math.round(rect.width * ratio);
+    sigCanvas.height = Math.round(rect.height * ratio);
+    sigCtx.scale(ratio, ratio);
+    sigCtx.lineWidth = 4;
+    sigCtx.lineCap = 'round';
+    sigCtx.lineJoin = 'round';
+    sigCtx.strokeStyle = '#000000';
+    sigHasContent = false;
+  }
+
+  function closeSignatureOverlay_() {
+    document.getElementById('signature-overlay').classList.add('hidden');
+    var status = document.getElementById('signature-status');
+    if (sigHasContent) {
+      status.textContent = '✅ サイン済み(押すと開き直せます。やり直しになります)';
+      status.classList.add('signed');
+    } else {
+      status.textContent = '未サイン';
+      status.classList.remove('signed');
+    }
   }
 
   function getSigPos_(e) {
     var rect = sigCanvas.getBoundingClientRect();
-    var scaleX = sigCanvas.width / rect.width;
-    var scaleY = sigCanvas.height / rect.height;
-    return { x: (e.clientX - rect.left) * scaleX, y: (e.clientY - rect.top) * scaleY };
+    return { x: e.clientX - rect.left, y: e.clientY - rect.top };
   }
 
   function clearSignature_() {
