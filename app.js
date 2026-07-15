@@ -72,6 +72,23 @@
     });
   }
 
+  /** 検索画面の絞り込みセレクト用。先頭に「絞り込みなし」の空欄オプションを残す */
+  function populateFilterSelect_(id, list, blankLabel) {
+    var select = document.getElementById(id);
+    select.innerHTML = '';
+    var blankOpt = document.createElement('option');
+    blankOpt.value = '';
+    blankOpt.textContent = blankLabel;
+    select.appendChild(blankOpt);
+    (list || []).forEach(function (value) {
+      if (value === 'その他') return; // 「その他」は絞り込み用途に向かないため除外
+      var opt = document.createElement('option');
+      opt.value = value;
+      opt.textContent = value;
+      select.appendChild(opt);
+    });
+  }
+
   // ===== 起動・ログイン =====
   function setLoadingStatus_(text) {
     var p = document.querySelector('#screen-loading p');
@@ -121,11 +138,25 @@
       populateSelect_('f-equipment-name', masters.equipmentList);
       populateSelect_('f-maker', masters.makerList);
       populateSelect_('f-billing-type', masters.billingTypes);
+      populateFilterSelect_('search-filter-equipment', masters.equipmentList, '設備名称(絞り込みなし)');
+      populateFilterSelect_('search-filter-maker', masters.makerList, 'メーカー(絞り込みなし)');
       showScreen_('screen-home');
     });
   }
 
   // ===== フォームのリセット =====
+  /** 今日の日付(YYYY-MM-DD)・現在時刻(HH:MM)をローカル時刻で返す(工事日・開始時間のデフォルト入力用) */
+  function todayDateString_() {
+    var d = new Date();
+    var pad = function (n) { return String(n).padStart(2, '0'); };
+    return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+  }
+  function nowTimeString_() {
+    var d = new Date();
+    var pad = function (n) { return String(n).padStart(2, '0'); };
+    return pad(d.getHours()) + ':' + pad(d.getMinutes());
+  }
+
   function resetFormData_() {
     formData = {
       workDate: '', startTime: '', endTime: '', customerName: '', address: '', phone: '',
@@ -138,6 +169,10 @@
     ['f-work-date', 'f-start-time', 'f-end-time', 'f-customer-name', 'f-address', 'f-phone',
       'f-model', 'f-serial-no', 'f-trouble', 'f-cause', 'f-repair', 'f-comment', 'f-next-check-date']
       .forEach(function (id) { document.getElementById(id).value = ''; });
+    // 工事日・開始時間は同日作業が多いため、今日の日付・現在時刻をデフォルト入力しておく
+    // (誤りがあれば社員がその場で修正できるので、入力の手間を減らすことを優先する)
+    document.getElementById('f-work-date').value = todayDateString_();
+    document.getElementById('f-start-time').value = nowTimeString_();
     document.getElementById('photo-grid').innerHTML = '';
     document.getElementById('photo-count').textContent = '0';
     document.getElementById('video-status').textContent = '';
@@ -373,6 +408,8 @@
     });
     document.getElementById('btn-search').addEventListener('click', function () {
       document.getElementById('search-keyword').value = '';
+      document.getElementById('search-filter-equipment').value = '';
+      document.getElementById('search-filter-maker').value = '';
       document.getElementById('search-result-list').innerHTML = '';
       showScreen_('screen-search');
     });
@@ -449,7 +486,14 @@
     });
 
     document.getElementById('btn-search-submit').addEventListener('click', function () {
-      var keyword = document.getElementById('search-keyword').value.trim();
+      // 設備名称・メーカーの絞り込みは、既存の自由語検索(全語AND一致)にキーワードとして
+      // 追加する形で実現している(バックエンドの検索ロジックはPhase1のものをそのまま再利用)。
+      var parts = [
+        document.getElementById('search-keyword').value.trim(),
+        document.getElementById('search-filter-equipment').value,
+        document.getElementById('search-filter-maker').value
+      ].filter(function (s) { return s !== ''; });
+      var keyword = parts.join(' ');
       showOverlay_('検索中...');
       runServer_('searchPastReports', idToken, keyword).then(function (results) {
         hideOverlay_();
