@@ -55,14 +55,14 @@
     <label>工事日<br><input id="f-work-date" type="date"></label>
     <label>開始時間<br><input id="f-start-time" type="time"></label>
     <label>終了時間<br><input id="f-end-time" type="time"></label>
-    <label>お客様名<br><input id="f-customer-name" type="text"></label>
+    <label>お客様名<br><input id="f-customer-name" type="text" placeholder="例: 山田太郎"></label>
     <label>住所<br>
       <div class="input-with-btn">
-        <input id="f-address" type="text">
+        <input id="f-address" type="text" placeholder="例: 大阪府大阪市中央区1-1-1">
         <button class="btn-small" id="btn-gps" type="button">📍現在地</button>
       </div>
     </label>
-    <label>電話番号<br><input id="f-phone" type="tel" inputmode="tel"></label>
+    <label>電話番号<br><input id="f-phone" type="tel" inputmode="tel" placeholder="例: 06-1234-5678"></label>
     <div class="readonly-field">担当者: <span id="f-staff-display"></span></div>
     <button class="btn btn-primary" data-next="screen-form-2" data-validate="1" type="button">次へ →</button>
   </section>
@@ -75,8 +75,8 @@
     </div>
     <label>設備名称<br><select id="f-equipment-name"></select></label>
     <label>メーカー<br><select id="f-maker"></select></label>
-    <label>型式<br><input id="f-model" type="text"></label>
-    <label>製造番号<br><input id="f-serial-no" type="text"></label>
+    <label>型式<br><input id="f-model" type="text" placeholder="例: RUF-A2005SAW"></label>
+    <label>製造番号<br><input id="f-serial-no" type="text" placeholder="例: 12345678"></label>
     <button class="btn btn-primary" data-next="screen-form-3" data-validate="2" type="button">次へ →</button>
   </section>
 
@@ -88,19 +88,19 @@
     </div>
     <label>故障内容
       <div class="input-with-btn">
-        <textarea id="f-trouble" rows="3"></textarea>
+        <textarea id="f-trouble" rows="3" placeholder="例: お湯が出ない"></textarea>
         <button class="mic-btn" data-target="f-trouble" type="button">🎤</button>
       </div>
     </label>
     <label>原因
       <div class="input-with-btn">
-        <textarea id="f-cause" rows="3"></textarea>
+        <textarea id="f-cause" rows="3" placeholder="例: 点火不良"></textarea>
         <button class="mic-btn" data-target="f-cause" type="button">🎤</button>
       </div>
     </label>
     <label>修理内容
       <div class="input-with-btn">
-        <textarea id="f-repair" rows="3"></textarea>
+        <textarea id="f-repair" rows="3" placeholder="例: 基盤交換"></textarea>
         <button class="mic-btn" data-target="f-repair" type="button">🎤</button>
       </div>
     </label>
@@ -127,11 +127,11 @@
     </div>
     <p>写真(最大10枚) 現在 <span id="photo-count">0</span>/10</p>
     <div id="photo-grid" class="photo-grid"></div>
-    <input type="file" id="photo-input" accept="image/*" capture="environment" multiple class="hidden">
-    <button class="btn btn-secondary" id="btn-add-photo" type="button">📷 写真を追加</button>
+    <input type="file" id="photo-input" accept="image/*" multiple class="hidden">
+    <button class="btn btn-secondary" id="btn-add-photo" type="button">📷 写真を追加(カメラ/カメラロール)</button>
 
     <p style="margin-top:20px">動画(任意・1本まで、長い動画は送信に失敗しやすいため短く撮影してください)</p>
-    <input type="file" id="video-input" accept="video/*" capture="environment" class="hidden">
+    <input type="file" id="video-input" accept="video/*" class="hidden">
     <button class="btn btn-secondary" id="btn-add-video" type="button">🎥 動画を撮影/選択</button>
     <div id="video-status"></div>
 
@@ -145,12 +145,13 @@
       <span class="step-dots">●●●●●● 6/6</span>
     </div>
     <label>お客様サイン</label>
-    <canvas id="signature-canvas" width="320" height="160"></canvas>
+    <p class="hint">枠内を指でなぞってサインしてください。サイン中は画面がスクロールしないようにしています。</p>
+    <canvas id="signature-canvas" width="640" height="320"></canvas>
     <button class="btn-small" id="btn-signature-clear" type="button">やり直す</button>
 
     <label>作業員コメント
       <div class="input-with-btn">
-        <textarea id="f-comment" rows="3"></textarea>
+        <textarea id="f-comment" rows="3" placeholder="例: 次回訪問時に再確認予定"></textarea>
         <button class="mic-btn" data-target="f-comment" type="button">🎤</button>
       </div>
     </label>
@@ -195,6 +196,10 @@
     <h2>過去の報告書を検索</h2>
     <p class="hint">お客様名・設備名・型式・住所・受付番号のいずれかで検索できます</p>
     <input id="search-keyword" type="text" placeholder="キーワードを入力(空欄で全件)">
+    <div class="search-filter-row">
+      <select id="search-filter-equipment"><option value="">設備名称(絞り込みなし)</option></select>
+      <select id="search-filter-maker"><option value="">メーカー(絞り込みなし)</option></select>
+    </div>
     <button class="btn btn-primary" id="btn-search-submit" type="button">検索</button>
     <div id="search-result-list" class="search-result-list"></div>
   </section>
