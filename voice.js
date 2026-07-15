@@ -35,10 +35,13 @@
       var textarea = document.getElementById(targetId);
       textarea.value = textarea.value ? (textarea.value + '\n' + transcript) : transcript;
     };
-    recognition.onerror = function (event) {
-      if (event.error !== 'aborted' && event.error !== 'no-speech') {
-        alert('音声入力でエラーが発生しました: ' + event.error);
+     recognition.onerror = function (event) {
+      if (event.error === 'aborted' || event.error === 'no-speech') return;
+      if (event.error === 'service-not-allowed' || event.error === 'not-allowed') {
+        alert('この端末では音声入力がご利用いただけません。お手数ですがキーボードで入力してください。');
+        return;
       }
+      alert('音声入力でエラーが発生しました: ' + event.error);
     };
     recognition.onend = function () {
       btnEl.classList.remove('recording');
