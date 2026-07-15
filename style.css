@@ -1,4 +1,4 @@
-  :root {
+:root {
     --bg: #f5f6f8;
     --surface: #ffffff;
     --text: #1c1c1e;
@@ -151,11 +151,28 @@
     border: none; border-radius: 50%; width: 22px; height: 22px; font-size: 13px; cursor: pointer;
   }
 
-  #signature-canvas {
-    width: 100%; aspect-ratio: 2 / 1; height: auto;
-    border: 2px solid var(--border); border-radius: 8px; background: #fff; touch-action: none;
-    display: block; overscroll-behavior: contain;
+  .signature-status {
+    margin-top: 8px; padding: 10px 12px; border-radius: 8px; background: var(--secondary);
+    color: var(--text-sub); font-size: 14px;
   }
+  .signature-status.signed { color: var(--success); font-weight: bold; }
+
+  /* サイン全画面オーバーレイ: スマホ画面いっぱいを使い、指を大きく動かしてサインできるようにする */
+  .signature-overlay {
+    position: fixed; inset: 0; z-index: 200;
+    background: var(--bg);
+    display: flex; flex-direction: column;
+    overscroll-behavior: contain;
+  }
+  .signature-overlay-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 16px; font-weight: bold; background: var(--surface); border-bottom: 1px solid var(--border);
+  }
+  #signature-canvas {
+    flex: 1; width: 100%; touch-action: none;
+    background: #fff; display: block;
+  }
+  #btn-signature-done { margin: 12px 16px calc(12px + env(safe-area-inset-bottom)); }
 
   .search-filter-row { display: flex; gap: 8px; margin-top: 8px; }
   .search-filter-row select { margin-top: 0; }
