@@ -115,12 +115,15 @@
         return;
       }
       idToken = liff.getIDToken();
-      return runServer_('getMyProfile', idToken).then(function (profile) {
-        if (!profile.registered) {
-          document.getElementById('register-display-name').textContent = profile.displayName || '';
+      // 通常起動(登録済み社員)はプロフィール取得とフォームマスタ取得を1回のAPI呼び出しに
+      // まとめている(以前はgetMyProfile→getFormMastersと逐次2回呼んでおり、GAS呼び出しの
+      // オーバーヘッドとLINE idToken検証がそれぞれ2重になって起動が遅かったため)。
+      return runServer_('getMyProfileAndMasters', idToken).then(function (result) {
+        if (!result.profile.registered) {
+          document.getElementById('register-display-name').textContent = result.profile.displayName || '';
           showScreen_('screen-register');
         } else {
-          return onLoginSuccess_(profile);
+          showHomeScreen_(result.profile, result.masters);
         }
       });
     }).catch(function (err) {
@@ -129,18 +132,24 @@
     });
   }
 
-  function onLoginSuccess_(profile) {
+  function showHomeScreen_(profile, masters) {
     currentUser = profile;
     document.getElementById('user-info').textContent = '社員番号:' + profile.staffId + '　' + profile.staffName;
     document.getElementById('f-staff-display').textContent = profile.staffName;
+    formMasters = masters;
+    populateSelect_('f-equipment-name', masters.equipmentList);
+    populateSelect_('f-maker', masters.makerList);
+    populateSelect_('f-billing-type', masters.billingTypes);
+    populateFilterSelect_('search-filter-equipment', masters.equipmentList, '設備名称(絞り込みなし)');
+    populateFilterSelect_('search-filter-maker', masters.makerList, 'メーカー(絞り込みなし)');
+    showScreen_('screen-home');
+  }
+
+  /** 初回登録直後専用。登録時にはgetMyProfileAndMastersを使えない(未登録のためmastersがnull)ので、
+   * 登録完了後に改めてgetFormMastersを1回呼ぶ(登録は一生に一度のイベントなのでコストは無視できる)。 */
+  function onLoginSuccess_(profile) {
     return runServer_('getFormMasters', idToken).then(function (masters) {
-      formMasters = masters;
-      populateSelect_('f-equipment-name', masters.equipmentList);
-      populateSelect_('f-maker', masters.makerList);
-      populateSelect_('f-billing-type', masters.billingTypes);
-      populateFilterSelect_('search-filter-equipment', masters.equipmentList, '設備名称(絞り込みなし)');
-      populateFilterSelect_('search-filter-maker', masters.makerList, 'メーカー(絞り込みなし)');
-      showScreen_('screen-home');
+      showHomeScreen_(profile, masters);
     });
   }
 
