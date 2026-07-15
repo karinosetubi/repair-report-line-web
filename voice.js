@@ -35,10 +35,22 @@
       var textarea = document.getElementById(targetId);
       textarea.value = textarea.value ? (textarea.value + '\n' + transcript) : transcript;
     };
-     recognition.onerror = function (event) {
+    recognition.onerror = function (event) {
       if (event.error === 'aborted' || event.error === 'no-speech') return;
-      if (event.error === 'service-not-allowed' || event.error === 'not-allowed') {
-        alert('この端末では音声入力がご利用いただけません。お手数ですがキーボードで入力してください。');
+      // service-not-allowed: iOS版LINEアプリ内ブラウザ(WKWebView)でよく発生する既知の制約
+      // (webkitSpeechRecognitionのコンストラクタ自体は存在するが、OS側の権限が無く実行時に拒否される)。
+      // Safari(外部ブラウザ)であれば同じAPIが無料のまま使えるため、iOSの場合はその案内を追加する
+      // (ホーム画面の「ブラウザで開く」導線、app.jsのupdateVoiceHintVisibility_参照)。
+      // not-allowed: マイク権限をユーザーが拒否した場合(Safariで開いても解決しないため案内は分ける)。
+      if (event.error === 'service-not-allowed') {
+        var isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+        alert(isIOS
+          ? 'この端末(LINEアプリ内)では音声入力がご利用いただけません。メインメニューの「ブラウザで開く」から開き直すと音声入力が使えます。今回はお手数ですがキーボードで入力してください。'
+          : 'この端末では音声入力がご利用いただけません。お手数ですがキーボードで入力してください。');
+        return;
+      }
+      if (event.error === 'not-allowed') {
+        alert('マイクの使用が許可されていません。端末の設定でマイクへのアクセスを許可してから、もう一度お試しください。');
         return;
       }
       alert('音声入力でエラーが発生しました: ' + event.error);
