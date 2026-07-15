@@ -1,4 +1,4 @@
-:root {
+  :root {
     --bg: #f5f6f8;
     --surface: #ffffff;
     --text: #1c1c1e;
@@ -163,6 +163,7 @@
     background: var(--bg);
     display: flex; flex-direction: column;
     overscroll-behavior: contain;
+    touch-action: none;
   }
   .signature-overlay-header {
     display: flex; align-items: center; justify-content: space-between;
