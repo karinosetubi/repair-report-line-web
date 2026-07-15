@@ -170,7 +170,20 @@
     populateSelect_('f-billing-type', masters.billingTypes);
     populateFilterSelect_('search-filter-equipment', masters.equipmentList, '設備名称(絞り込みなし)');
     populateFilterSelect_('search-filter-maker', masters.makerList, 'メーカー(絞り込みなし)');
+    updateVoiceHintVisibility_();
     showScreen_('screen-home');
+  }
+
+  /**
+   * iOS版LINEアプリ内ブラウザ(WKWebView)はWeb Speech APIの音声認識サービスをOS側で拒否するため
+   * (service-not-allowedエラー、voice.js参照)、外部ブラウザ(Safari)で開き直せば無料のまま音声入力が
+   * 使えることをホーム画面で案内する。Androidはアプリ内でも音声入力が動くことが多いため表示しない。
+   * データ入力途中に切り替えると formData が消えるため、ホーム画面(入力開始前)にのみ表示する。
+   */
+  function updateVoiceHintVisibility_() {
+    var isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    var isInLineApp = window.liff && liff.isInClient && liff.isInClient();
+    document.getElementById('voice-hint').classList.toggle('hidden', !(isIOS && isInLineApp));
   }
 
   /** 初回登録直後専用。登録時にはgetMyProfileAndMastersを使えない(未登録のためmastersがnull)ので、
@@ -446,6 +459,14 @@
       document.getElementById('search-filter-maker').value = '';
       document.getElementById('search-result-list').innerHTML = '';
       showScreen_('screen-search');
+    });
+    document.getElementById('open-in-browser-link').addEventListener('click', function (e) {
+      e.preventDefault();
+      if (window.liff && liff.isInClient && liff.isInClient()) {
+        liff.openWindow({ url: location.href, external: true });
+      } else {
+        window.open(location.href, '_blank');
+      }
     });
 
     document.querySelectorAll('[data-back]').forEach(function (btn) {
