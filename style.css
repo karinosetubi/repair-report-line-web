@@ -152,10 +152,13 @@
   }
 
   #signature-canvas {
-    width: 100%; max-width: 320px; height: 160px;
-    border: 1px solid var(--border); border-radius: 8px; background: #fff; touch-action: none;
-    display: block;
+    width: 100%; aspect-ratio: 2 / 1; height: auto;
+    border: 2px solid var(--border); border-radius: 8px; background: #fff; touch-action: none;
+    display: block; overscroll-behavior: contain;
   }
+
+  .search-filter-row { display: flex; gap: 8px; margin-top: 8px; }
+  .search-filter-row select { margin-top: 0; }
 
   .parts-list-row {
     display: grid; grid-template-columns: 2fr 1fr 1fr auto; gap: 6px; align-items: center; margin-top: 8px;
