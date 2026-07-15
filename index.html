@@ -14,6 +14,16 @@
   <div id="overlay-text" class="overlay-text">送信中...</div>
 </div>
 
+<!-- サイン全画面オーバーレイ(screen-form-6の「タップして画面いっぱいでサインする」から開く) -->
+<div id="signature-overlay" class="signature-overlay hidden">
+  <div class="signature-overlay-header">
+    <span>お客様サイン</span>
+    <button class="btn-small" id="btn-signature-clear" type="button">やり直す</button>
+  </div>
+  <canvas id="signature-canvas"></canvas>
+  <button class="btn btn-primary" id="btn-signature-done" type="button">サイン完了</button>
+</div>
+
 <header class="app-header">
   <span class="app-title">狩野設備工業 修理報告書</span>
   <button id="theme-toggle" class="icon-btn" type="button">🌙</button>
@@ -145,9 +155,8 @@
       <span class="step-dots">●●●●●● 6/6</span>
     </div>
     <label>お客様サイン</label>
-    <p class="hint">枠内を指でなぞってサインしてください。サイン中は画面がスクロールしないようにしています。</p>
-    <canvas id="signature-canvas" width="640" height="320"></canvas>
-    <button class="btn-small" id="btn-signature-clear" type="button">やり直す</button>
+    <div id="signature-status" class="signature-status">未サイン</div>
+    <button class="btn btn-secondary" id="btn-signature-open" type="button">✍️ タップして画面いっぱいでサインする</button>
 
     <label>作業員コメント
       <div class="input-with-btn">
