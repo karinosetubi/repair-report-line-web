@@ -47,6 +47,10 @@
     color: var(--text);
     font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", sans-serif;
     font-size: 16px;
+    /* LINEアプリ内ブラウザは、ページ上端での引っ張り(オーバースクロール)を検知すると
+       ブラウザ自体を丸いバブルに最小化するジェスチャーを発動する。overscroll-behaviorで
+       引っ張り動作自体を無効化し、その発動条件を断つ。 */
+    overscroll-behavior-y: none;
   }
   .hidden { display: none !important; }
 
@@ -162,7 +166,7 @@
     position: fixed; inset: 0; z-index: 200;
     background: var(--bg);
     display: flex; flex-direction: column;
-    overscroll-behavior: contain;
+    overscroll-behavior: none;
     touch-action: none;
   }
   .signature-overlay-header {
