@@ -54,6 +54,16 @@
   }
 
   /**
+   * LINEアプリ内ブラウザ(WebView)ではPointer Eventのtouch-action/preventDefaultだけでは
+   * スクロール・拡大縮小ジェスチャーを止めきれない端末があるため、documentレベルでtouchmove
+   * そのものをブロックする(オーバーレイを開いている間のみ)。passive:falseを明示しないと
+   * preventDefault()が効かない点に注意。
+   */
+  function preventDocumentTouchMove_(e) {
+    e.preventDefault();
+  }
+
+  /**
    * サインオーバーレイを開く。canvasの実解像度は、開くたびに実際に表示される
    * ピクセルサイズ(スマホ画面いっぱい)に合わせて設定し直す(devicePixelRatioで高精細化)。
    * 【注意】canvasのwidth/height属性を変更するとその時点の描画内容は消えるため、
@@ -62,6 +72,7 @@
    */
   function openSignatureOverlay_() {
     lockBodyScroll_();
+    document.addEventListener('touchmove', preventDocumentTouchMove_, { passive: false });
     var overlay = document.getElementById('signature-overlay');
     overlay.classList.remove('hidden');
 
@@ -79,6 +90,7 @@
 
   function closeSignatureOverlay_() {
     document.getElementById('signature-overlay').classList.add('hidden');
+    document.removeEventListener('touchmove', preventDocumentTouchMove_, { passive: false });
     unlockBodyScroll_();
     var status = document.getElementById('signature-status');
     if (sigHasContent) {
