@@ -263,24 +263,87 @@ function loadAnnounceTab_() {
   }).catch(showError_);
 }
 
+// ===== 社員管理タブ =====
+function loadStaffTab_() {
+  runServer_('listAllStaff', idToken).then(function (list) {
+    document.getElementById('staff-table-body').innerHTML = list.map(function (s) {
+      return '<tr>' +
+        '<td>' + escapeHtml_(s.staffId) + '</td>' +
+        '<td><input type="text" data-staff-field="staffName" data-staff-id="' + escapeHtml_(s.staffId) + '" value="' + escapeHtml_(s.staffName) + '" style="padding:6px 8px;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);"></td>' +
+        '<td><input type="checkbox" data-staff-field="isAdmin" data-staff-id="' + escapeHtml_(s.staffId) + '"' + (s.isAdmin ? ' checked' : '') + '></td>' +
+        '<td><input type="date" data-staff-field="hireDate" data-staff-id="' + escapeHtml_(s.staffId) + '" value="' + (s.hireDate ? s.hireDate.replace(/\//g, '-') : '') + '" style="padding:6px 8px;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);"></td>' +
+        '<td><button class="btn-small btn-staff-save" data-staff-id="' + escapeHtml_(s.staffId) + '">保存</button></td>' +
+        '</tr>';
+    }).join('') || '<tr><td colspan="5" class="empty-note">社員が登録されていません</td></tr>';
+
+    document.querySelectorAll('.btn-staff-save').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var staffId = btn.getAttribute('data-staff-id');
+        var row = btn.closest('tr');
+        var staffName = row.querySelector('[data-staff-field="staffName"]').value;
+        var isAdmin = row.querySelector('[data-staff-field="isAdmin"]').checked;
+        var hireDate = row.querySelector('[data-staff-field="hireDate"]').value;
+        runServer_('updateStaff', idToken, staffId, staffName, isAdmin, hireDate).then(function () {
+          loadStaffTab_();
+        }).catch(showError_);
+      });
+    });
+  }).catch(showError_);
+}
+
+// ===== 休日カレンダータブ =====
+function loadHolidayTab_() {
+  runServer_('listHolidays', idToken).then(function (list) {
+    document.getElementById('holiday-table-body').innerHTML = list.map(function (h) {
+      return '<tr><td>' + escapeHtml_(h.date) + '</td><td>' + escapeHtml_(h.name) + '</td></tr>';
+    }).join('') || '<tr><td colspan="2" class="empty-note">祝日データがありません(内閣府から取得してください)</td></tr>';
+  }).catch(showError_);
+}
+
+// ===== 会社設定タブ =====
+function loadCompanyTab_() {
+  runServer_('getCompanySettings', idToken).then(function (s) {
+    document.getElementById('cs-company-name').value = s['会社名'] || '';
+    document.getElementById('cs-mail-to').value = s['送信先メールアドレス'] || '';
+    document.getElementById('cs-equipment').value = s['設備名称マスタ'] || '';
+    document.getElementById('cs-maker').value = s['メーカーマスタ'] || '';
+    document.getElementById('cs-lat').value = s['会社所在地_緯度'] || '';
+    document.getElementById('cs-lng').value = s['会社所在地_経度'] || '';
+    document.getElementById('cs-standard-minutes').value = s['所定労働時間分'] || '';
+  }).catch(showError_);
+}
+
 // ===== タブ切り替え =====
 function switchTab_(tabId) {
   currentTab_ = tabId;
-  document.querySelectorAll('.nav-item').forEach(function (n) { n.classList.toggle('active', n.getAttribute('data-tab') === tabId); });
-  ['tab-dashboard', 'tab-attendance', 'tab-requests', 'tab-announce'].forEach(function (id) {
+  ['tab-dashboard', 'tab-attendance', 'tab-requests', 'tab-announce', 'tab-staff', 'tab-holiday', 'tab-company', 'tab-soon'].forEach(function (id) {
     document.getElementById(id).classList.toggle('hidden', id !== tabId);
   });
-  var titles = { 'tab-dashboard': 'ダッシュボード', 'tab-attendance': '勤怠一覧', 'tab-requests': '申請承認', 'tab-announce': 'お知らせ管理' };
+  var titles = {
+    'tab-dashboard': 'ダッシュボード', 'tab-attendance': '勤怠一覧', 'tab-requests': '申請承認', 'tab-announce': 'お知らせ管理',
+    'tab-staff': '社員管理', 'tab-holiday': '休日カレンダー', 'tab-company': '会社設定',
+    'tab-soon': document.getElementById('soon-feature-name') ? document.getElementById('soon-feature-name').textContent : '準備中'
+  };
   document.getElementById('topbar-title').textContent = titles[tabId];
   if (tabId === 'tab-dashboard') loadDashboardTab_();
   else if (tabId === 'tab-attendance') loadAttendanceTab_();
   else if (tabId === 'tab-requests') loadRequestsTab_();
   else if (tabId === 'tab-announce') loadAnnounceTab_();
+  else if (tabId === 'tab-staff') loadStaffTab_();
+  else if (tabId === 'tab-holiday') loadHolidayTab_();
+  else if (tabId === 'tab-company') loadCompanyTab_();
 }
 
 document.addEventListener('DOMContentLoaded', function () {
   document.querySelectorAll('.nav-item').forEach(function (item) {
-    item.addEventListener('click', function () { switchTab_(item.getAttribute('data-tab')); });
+    item.addEventListener('click', function () {
+      document.querySelectorAll('.nav-item').forEach(function (n) { n.classList.remove('active'); });
+      item.classList.add('active');
+      if (item.getAttribute('data-tab') === 'tab-soon') {
+        document.getElementById('soon-feature-name').textContent = item.getAttribute('data-soon-label') || '準備中';
+      }
+      switchTab_(item.getAttribute('data-tab'));
+    });
   });
   document.getElementById('btn-refresh').addEventListener('click', function () { switchTab_(currentTab_); });
   document.getElementById('btn-att-search').addEventListener('click', loadAttendanceTab_);
@@ -321,9 +384,24 @@ document.addEventListener('DOMContentLoaded', function () {
     resultEl.textContent = '取得中...';
     runServer_('syncHolidays', idToken).then(function (result) {
       resultEl.textContent = '祝日データを更新しました(' + result.count + '件)。';
+      loadHolidayTab_();
     }).catch(function (err) {
       resultEl.textContent = '取得に失敗しました: ' + ((err && err.message) || err);
     });
+  });
+
+  document.getElementById('btn-cs-save').addEventListener('click', function () {
+    var settings = {};
+    settings['会社名'] = document.getElementById('cs-company-name').value.trim();
+    settings['送信先メールアドレス'] = document.getElementById('cs-mail-to').value.trim();
+    settings['設備名称マスタ'] = document.getElementById('cs-equipment').value.trim();
+    settings['メーカーマスタ'] = document.getElementById('cs-maker').value.trim();
+    settings['会社所在地_緯度'] = document.getElementById('cs-lat').value.trim();
+    settings['会社所在地_経度'] = document.getElementById('cs-lng').value.trim();
+    settings['所定労働時間分'] = document.getElementById('cs-standard-minutes').value.trim();
+    runServer_('updateCompanySettings', idToken, settings).then(function () {
+      alert('会社設定を保存しました。');
+    }).catch(showError_);
   });
 });
 
