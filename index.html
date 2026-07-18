@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-  <title>修理報告書</title>
+  <title>狩野設備Works</title>
   <link rel="stylesheet" href="style.css">
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 </head>
@@ -25,7 +25,7 @@
 </div>
 
 <header class="app-header">
-  <span class="app-title">狩野設備工業 修理報告書</span>
+  <span class="app-title">狩野設備Works</span>
   <button id="theme-toggle" class="icon-btn" type="button">🌙</button>
 </header>
 
@@ -69,10 +69,7 @@
         <button class="punch-btn punch-out" id="btn-clock-out" type="button"><span class="punch-icon">■</span>退勤</button>
         <button class="punch-btn punch-break" id="btn-break-toggle" type="button">☕ 休憩開始</button>
       </div>
-      <div class="gps-toggle-row">
-        <span>📍 位置情報を記録する</span>
-        <label class="switch"><input type="checkbox" id="gps-toggle" checked><span class="switch-track"></span></label>
-      </div>
+      <div class="gps-forced-note">📍 出勤・退勤時に位置情報を自動で記録します</div>
     </div>
 
     <div class="tile-grid">
@@ -123,13 +120,18 @@
 
     <div class="section-title">修理報告書システム</div>
     <div class="quick-links">
-      <div class="quick-link" id="quick-new-report"><span class="icon">📝</span>工事日報を作成</div>
+      <div class="quick-link" id="quick-new-report"><span class="icon">📝</span>修理報告書作成</div>
       <div class="quick-link" id="quick-search"><span class="icon">🔍</span>修理履歴を検索</div>
       <div class="quick-link" id="quick-ai-consult"><span class="icon">🤖</span>AI相談</div>
       <div class="quick-link" id="quick-pdf-search"><span class="icon">📄</span>PDF検索</div>
       <div class="quick-link" id="quick-attendance-history"><span class="icon">🕒</span>勤怠履歴</div>
       <div class="quick-link" id="quick-requests"><span class="icon">📮</span>申請・承認</div>
       <div class="quick-link tile-wide hidden" id="quick-announce-admin"><span class="icon">⚙️</span>お知らせ管理(管理者)</div>
+    </div>
+
+    <div class="section-title">工事日報</div>
+    <div class="quick-links">
+      <div class="quick-link tile-wide" id="quick-daily-report"><span class="icon">📋</span>工事日報を作成・確認</div>
     </div>
 
     <div class="section-title">その他のシステム(準備中)</div>
@@ -172,6 +174,23 @@
     <input id="pdf-search-keyword" type="text" placeholder="キーワードを入力">
     <button class="btn btn-primary" id="btn-pdf-search-submit" type="button">検索</button>
     <div id="pdf-search-result-list" class="search-result-list"></div>
+  </section>
+
+  <!-- 工事日報(修理報告書とは別機能。1日1件、現場ごとの行を最大10件まで) -->
+  <section id="screen-daily-report" class="screen hidden">
+    <div class="step-header">
+      <button class="btn-link" data-back="screen-dashboard">← ホームに戻る</button>
+    </div>
+    <h2>工事日報</h2>
+    <label>日付<br><input id="dr-date" type="date"></label>
+
+    <div id="dr-site-list"></div>
+    <button class="btn btn-secondary" id="btn-dr-add-site" type="button">＋ 現場を追加</button>
+    <p class="hint" id="dr-site-count-hint">0/10件</p>
+    <button class="btn btn-primary" id="btn-dr-save" type="button">保存する</button>
+
+    <div class="section-title">今月の履歴</div>
+    <div id="dr-history-list"></div>
   </section>
 
   <!-- 工事日報メインメニュー(旧ホーム画面。ダッシュボードの「工事日報を作成」等から遷移) -->
