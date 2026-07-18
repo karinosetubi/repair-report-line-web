@@ -130,6 +130,15 @@
             startNewReport_();
           }
         }
+      }).catch(function (err) {
+        // ブラウザ/アプリに残っていた古いLIFFセッションのidTokenが期限切れの場合、エラー画面を出す前に
+        // ログアウト→再ログインさせて自動的に復旧させる(毎回ユーザーに手動再読み込みさせないため)。
+        if (err && err.message && err.message.indexOf('expired') !== -1) {
+          liff.logout();
+          liff.login();
+          return;
+        }
+        throw err;
       });
     }).catch(function (err) {
       clearTimeout(timeoutId);
@@ -561,3 +570,4 @@
   });
 
   window.addEventListener('load', initApp_);
+
