@@ -400,8 +400,7 @@
         '<div class="title">' + escapeHtml_(r.customerName) + '様 - ' + escapeHtml_(r.equipmentName || '') + '</div>' +
         '<div class="sub">' + escapeHtml_(r.receiptNo) + ' / ' + escapeHtml_(r.workDate) + ' / ' + escapeHtml_(r.address || '') + '</div>';
       card.addEventListener('click', function () {
-        renderSearchDetail_(r);
-        showScreen_('screen-search-detail');
+        goToSearchDetail_(r, 'screen-search');
       });
       list.appendChild(card);
     });
