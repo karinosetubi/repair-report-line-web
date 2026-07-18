@@ -171,7 +171,9 @@
     populateFilterSelect_('search-filter-equipment', masters.equipmentList, '設備名称(絞り込みなし)');
     populateFilterSelect_('search-filter-maker', masters.makerList, 'メーカー(絞り込みなし)');
     updateVoiceHintVisibility_();
-    showScreen_('screen-home');
+    // ホーム画面はダッシュボード(screen-dashboard)。工事日報の新規作成/検索メニュー(screen-home)は
+    // ダッシュボードのクイックリンクやフォームの「戻る」から遷移する2階層目の画面として残す。
+    showDashboard_();
   }
 
   /**
@@ -442,9 +444,10 @@
     document.getElementById('btn-register-submit').addEventListener('click', function () {
       var staffId = document.getElementById('register-staff-id').value.trim();
       var staffName = document.getElementById('register-staff-name').value.trim();
-      if (!staffId || !staffName) { alert('社員番号と氏名を入力してください。'); return; }
+      var hireDate = document.getElementById('register-hire-date').value;
+      if (!staffId || !staffName || !hireDate) { alert('社員番号・氏名・入社日を入力してください。'); return; }
       showOverlay_('登録中...');
-      runServer_('registerMyself', idToken, staffId, staffName).then(function (profile) {
+      runServer_('registerMyself', idToken, staffId, staffName, hireDate).then(function (profile) {
         hideOverlay_();
         return onLoginSuccess_(profile);
       }).catch(showError_);
@@ -534,7 +537,7 @@
       if (window.liff && liff.isInClient()) liff.closeWindow();
     });
     document.getElementById('btn-back-home').addEventListener('click', function () {
-      showScreen_('screen-home');
+      showDashboard_();
     });
     document.getElementById('btn-error-retry').addEventListener('click', function () {
       location.reload();
