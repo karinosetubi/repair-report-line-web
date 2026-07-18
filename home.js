@@ -270,6 +270,99 @@ function goToSearchDetail_(report, backScreenId) {
   showScreen_('screen-search-detail');
 }
 
+// ===== 工事日報(修理報告書とは別機能) =====
+var drSites_ = [];
+
+function showDailyReportScreen_() {
+  var today = todayDateString_();
+  document.getElementById('dr-date').value = today;
+  showScreen_('screen-daily-report');
+  loadDailyReport_(today);
+  loadDrHistory_(today.slice(0, 7));
+}
+
+function loadDailyReport_(date) {
+  showOverlay_('読み込み中...');
+  runServer_('getMyDailyReport', idToken, date).then(function (report) {
+    hideOverlay_();
+    drSites_ = report.sites || [];
+    renderDrSites_();
+  }).catch(showError_);
+}
+
+function renderDrSites_() {
+  var container = document.getElementById('dr-site-list');
+  container.innerHTML = '';
+  drSites_.forEach(function (site, index) {
+    var card = document.createElement('div');
+    card.className = 'dr-site-card';
+    card.innerHTML =
+      '<div class="dr-site-header"><b>現場 ' + (index + 1) + '</b><button class="btn-small" type="button" data-remove="' + index + '">✕ 削除</button></div>' +
+      '<label>現場名</label><input type="text" data-field="siteName" data-index="' + index + '" value="' + escapeHtml_(site.siteName || '') + '" placeholder="例: 山田様邸">' +
+      '<label>作業場所(住所)</label><input type="text" data-field="location" data-index="' + index + '" value="' + escapeHtml_(site.location || '') + '" placeholder="例: 大阪府〇〇市...">' +
+      '<label>時間</label><div class="dr-time-row">' +
+      '<input type="time" data-field="startTime" data-index="' + index + '" value="' + escapeHtml_(site.startTime || '') + '">' +
+      '<input type="time" data-field="endTime" data-index="' + index + '" value="' + escapeHtml_(site.endTime || '') + '">' +
+      '</div>' +
+      '<label>作業内容</label><textarea rows="2" data-field="content" data-index="' + index + '" placeholder="例: 給湯器点検">' + escapeHtml_(site.content || '') + '</textarea>';
+    container.appendChild(card);
+  });
+
+  container.querySelectorAll('[data-field]').forEach(function (el) {
+    el.addEventListener('input', function () {
+      var idx = Number(el.getAttribute('data-index'));
+      var field = el.getAttribute('data-field');
+      drSites_[idx][field] = el.value;
+    });
+  });
+  container.querySelectorAll('[data-remove]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      drSites_.splice(Number(btn.getAttribute('data-remove')), 1);
+      renderDrSites_();
+    });
+  });
+
+  document.getElementById('dr-site-count-hint').textContent = drSites_.length + '/10件';
+  document.getElementById('btn-dr-add-site').disabled = drSites_.length >= 10;
+}
+
+function loadDrHistory_(yearMonth) {
+  runServer_('getMyDailyReportHistory', idToken, yearMonth).then(function (list) {
+    renderDrHistory_(list);
+  }).catch(function (err) { console.error(err); });
+}
+
+function renderDrHistory_(list) {
+  var container = document.getElementById('dr-history-list');
+  container.innerHTML = list.length ? list.map(function (r) {
+    return '<div class="dr-history-row" data-date="' + r.date.replace(/\//g, '-') + '"><div class="name">' + escapeHtml_(r.date) + '</div>' +
+      '<div class="sub">' + r.sites.length + '件の現場</div></div>';
+  }).join('') : '<p class="empty-note">この月の工事日報はまだありません</p>';
+
+  container.querySelectorAll('.dr-history-row').forEach(function (row) {
+    row.addEventListener('click', function () {
+      var date = row.getAttribute('data-date');
+      document.getElementById('dr-date').value = date;
+      loadDailyReport_(date);
+    });
+  });
+}
+
+function submitDailyReport_() {
+  var date = document.getElementById('dr-date').value;
+  if (!date) { alert('日付を選択してください。'); return; }
+  if (drSites_.length === 0) { alert('現場を1件以上入力してください。'); return; }
+  for (var i = 0; i < drSites_.length; i++) {
+    if (!drSites_[i].siteName || !drSites_[i].siteName.trim()) { alert((i + 1) + '件目の現場名を入力してください。'); return; }
+  }
+  showOverlay_('保存中...');
+  runServer_('saveDailyReport', idToken, date, drSites_).then(function () {
+    hideOverlay_();
+    alert('工事日報を保存しました。');
+    loadDrHistory_(date.slice(0, 7));
+  }).catch(showError_);
+}
+
 function downloadTextFile_(filename, text, mime) {
   var blob = new Blob([text], { type: mime || 'text/plain' });
   var url = URL.createObjectURL(blob);
@@ -310,6 +403,17 @@ document.addEventListener('DOMContentLoaded', function () {
   });
   document.getElementById('btn-ai-consult-submit').addEventListener('click', submitAiConsult_);
   document.getElementById('btn-pdf-search-submit').addEventListener('click', submitPdfSearch_);
+  document.getElementById('quick-daily-report').addEventListener('click', showDailyReportScreen_);
+  document.getElementById('dr-date').addEventListener('change', function () {
+    loadDailyReport_(this.value);
+    loadDrHistory_(this.value.slice(0, 7));
+  });
+  document.getElementById('btn-dr-add-site').addEventListener('click', function () {
+    if (drSites_.length >= 10) return;
+    drSites_.push({ startTime: '', endTime: '', siteName: '', location: '', content: '' });
+    renderDrSites_();
+  });
+  document.getElementById('btn-dr-save').addEventListener('click', submitDailyReport_);
   document.querySelectorAll('.quick-link.disabled').forEach(function (el) {
     el.addEventListener('click', function () { alert('この機能は準備中です。'); });
   });
