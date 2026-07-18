@@ -1,10 +1,11 @@
 // attendance.js
-// ホーム画面の出勤/退勤/休憩ボタンの打刻処理。GPS取得(ON/OFF)を踏まえて座標を渡す。
+// ホーム画面の出勤/退勤/休憩ボタンの打刻処理。
+// 出勤/退勤は位置情報を常に取得しようと試みる(強制記録。ON/OFFの選択肢は廃止)。
+// ただし取得できない場合(電波不良・権限拒否等)でも打刻自体は止めない。
 
-/** GPSがONの場合のみ現在地を取得してcallbackに渡す。OFF/取得失敗時はnull,nullを渡す(打刻自体は続行)。 */
+/** 現在地を取得してcallbackに渡す。取得失敗時はnull,nullを渡す(打刻自体は続行する)。 */
 function getPunchLocation_(callback) {
-  var useGps = document.getElementById('gps-toggle').checked;
-  if (!useGps || !navigator.geolocation) {
+  if (!navigator.geolocation) {
     callback(null, null);
     return;
   }
@@ -40,4 +41,3 @@ document.addEventListener('DOMContentLoaded', function () {
     runPunch_(isOnBreak ? 'breakEnd' : 'breakStart', false);
   });
 });
-
