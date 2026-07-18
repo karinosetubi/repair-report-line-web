@@ -219,6 +219,57 @@ function loadHistory_() {
   }).catch(showError_);
 }
 
+// ===== AI相談 =====
+function submitAiConsult_() {
+  var keyword = document.getElementById('ai-consult-keyword').value.trim();
+  if (!keyword) { alert('相談内容を入力してください。'); return; }
+  showOverlay_('AIが回答を作成中です...(数秒〜数十秒かかります)');
+  runServer_('aiConsult', idToken, keyword).then(function (result) {
+    hideOverlay_();
+    document.getElementById('ai-consult-result').textContent = result.text;
+  }).catch(showError_);
+}
+
+// ===== PDF内検索 =====
+function submitPdfSearch_() {
+  var keyword = document.getElementById('pdf-search-keyword').value.trim();
+  if (!keyword) { alert('キーワードを入力してください。'); return; }
+  showOverlay_('検索中...');
+  runServer_('searchPdfKeyword', idToken, keyword).then(function (results) {
+    hideOverlay_();
+    renderPdfSearchResults_(results);
+  }).catch(showError_);
+}
+
+function renderPdfSearchResults_(results) {
+  var list = document.getElementById('pdf-search-result-list');
+  list.innerHTML = '';
+  if (results.length === 0) {
+    list.innerHTML = '<p class="hint">該当するPDFが見つかりませんでした。</p>';
+    return;
+  }
+  results.forEach(function (r) {
+    var card = document.createElement('div');
+    card.className = 'search-card';
+    card.innerHTML =
+      '<div class="title">' + escapeHtml_(r.customerName) + '様 - ' + escapeHtml_(r.equipmentName || '') + '</div>' +
+      '<div class="sub">' + escapeHtml_(r.receiptNo) + ' / ' + escapeHtml_(r.workDate) + ' / ' + escapeHtml_(r.address || '') + '</div>';
+    card.addEventListener('click', function () {
+      goToSearchDetail_(r, 'screen-pdf-search');
+    });
+    list.appendChild(card);
+  });
+}
+
+/** 検索結果詳細(screen-search-detail)は通常検索・PDF検索の両方から使い回すため、
+ * 表示のたびに「戻る」ボタンの遷移先を呼び出し元の画面に差し替える。 */
+function goToSearchDetail_(report, backScreenId) {
+  var backBtn = document.querySelector('#screen-search-detail [data-back]');
+  if (backBtn) backBtn.setAttribute('data-back', backScreenId);
+  renderSearchDetail_(report);
+  showScreen_('screen-search-detail');
+}
+
 function downloadTextFile_(filename, text, mime) {
   var blob = new Blob([text], { type: mime || 'text/plain' });
   var url = URL.createObjectURL(blob);
@@ -246,6 +297,21 @@ document.addEventListener('DOMContentLoaded', function () {
   });
   document.getElementById('quick-announce-admin').addEventListener('click', function () {
     showScreen_('screen-announce-admin');
+  });
+  document.getElementById('quick-ai-consult').addEventListener('click', function () {
+    document.getElementById('ai-consult-keyword').value = '';
+    document.getElementById('ai-consult-result').textContent = '';
+    showScreen_('screen-ai-consult');
+  });
+  document.getElementById('quick-pdf-search').addEventListener('click', function () {
+    document.getElementById('pdf-search-keyword').value = '';
+    document.getElementById('pdf-search-result-list').innerHTML = '';
+    showScreen_('screen-pdf-search');
+  });
+  document.getElementById('btn-ai-consult-submit').addEventListener('click', submitAiConsult_);
+  document.getElementById('btn-pdf-search-submit').addEventListener('click', submitPdfSearch_);
+  document.querySelectorAll('.quick-link.disabled').forEach(function (el) {
+    el.addEventListener('click', function () { alert('この機能は準備中です。'); });
   });
 
   document.getElementById('req-type').addEventListener('change', function () {
@@ -319,4 +385,3 @@ document.addEventListener('DOMContentLoaded', function () {
     }).catch(showError_);
   });
 });
-
