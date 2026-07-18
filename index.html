@@ -45,19 +45,172 @@
     <p>LINEアカウント「<span id="register-display-name"></span>」を社員情報に登録します。</p>
     <label>社員番号<br><input id="register-staff-id" type="text" inputmode="numeric" placeholder="例: 0012"></label>
     <label>氏名<br><input id="register-staff-name" type="text" placeholder="例: 田中太郎"></label>
+    <label>入社日<br><input id="register-hire-date" type="date"></label>
+    <p class="hint">入社日は有給休暇の残日数の自動計算に使用します。</p>
     <button class="btn btn-primary" id="btn-register-submit" type="button">登録する</button>
   </section>
 
-  <!-- メインメニュー -->
-  <section id="screen-home" class="screen hidden">
-    <div id="user-info" class="user-info"></div>
-     <button class="btn btn-primary btn-large" id="btn-new-report" type="button">➕ 修理報告書を作成</button>
-    <button class="btn btn-secondary btn-large" id="btn-search" type="button">🔍 過去の報告書を検索</button>
+  <!-- ホーム(ダッシュボード) -->
+  <section id="screen-dashboard" class="screen hidden">
+    <div class="dash-greeting" id="dash-date"></div>
+    <div class="dash-name" id="dash-name"></div>
+
+    <div class="clock-card">
+      <div class="clock-time" id="clock-now">--:--</div>
+      <div class="clock-date" id="clock-today"></div>
+      <div><span class="status-badge status-未出勤" id="attendance-status-badge">未出勤</span></div>
+      <div class="clock-times-row">
+        <div>出勤<br><b id="clock-in-time">--:--</b></div>
+        <div>休憩<br><b id="break-minutes-value">0分</b></div>
+        <div>退勤<br><b id="clock-out-time">--:--</b></div>
+      </div>
+      <div class="punch-grid">
+        <button class="punch-btn punch-in" id="btn-clock-in" type="button"><span class="punch-icon">▶</span>出勤</button>
+        <button class="punch-btn punch-out" id="btn-clock-out" type="button"><span class="punch-icon">■</span>退勤</button>
+        <button class="punch-btn punch-break" id="btn-break-toggle" type="button">☕ 休憩開始</button>
+      </div>
+      <div class="gps-toggle-row">
+        <span>📍 位置情報を記録する</span>
+        <label class="switch"><input type="checkbox" id="gps-toggle" checked><span class="switch-track"></span></label>
+      </div>
+    </div>
+
+    <div class="tile-grid">
+      <div class="tile tile-wide">
+        <div class="tile-label">🌤️ 現在の天気</div>
+        <div class="tile-value" id="tile-weather-temp">--℃</div>
+        <div class="tile-sub" id="tile-weather-desc">取得中...</div>
+        <div class="tile-sub" id="tile-weather-wbgt">暑さ指数(簡易推定): --</div>
+      </div>
+
+      <div class="tile tile-wide" id="tile-sites">
+        <div class="tile-label">🏠 本日の現場</div>
+        <div class="tile-value" id="tile-sites-count">0件</div>
+        <div class="site-list" id="tile-sites-list"></div>
+      </div>
+
+      <div class="tile tile-wide" id="tile-schedules">
+        <div class="tile-label">📅 本日の予定</div>
+        <div class="tile-value" id="tile-schedules-count">0件</div>
+        <div class="schedule-list" id="tile-schedules-list"></div>
+      </div>
+
+      <div class="tile" id="tile-reports">
+        <div class="tile-label">🧾 今日の工事件数</div>
+        <div class="tile-value" id="tile-reports-count">0件</div>
+      </div>
+
+      <div class="tile tile-clickable" id="tile-requests">
+        <div class="tile-label">📮 未承認申請</div>
+        <div class="tile-value" id="tile-requests-count">0件</div>
+      </div>
+
+      <div class="tile" id="tile-vehicle">
+        <div class="tile-label">🚗 車両予約状況</div>
+        <div class="tile-value" id="tile-vehicle-count">0/0台</div>
+      </div>
+
+      <div class="tile" id="tile-tool">
+        <div class="tile-label">🧰 工具貸出状況</div>
+        <div class="tile-value" id="tile-tool-count">0/0点</div>
+      </div>
+
+      <div class="tile tile-wide">
+        <div class="tile-label">📢 お知らせ</div>
+        <div class="announce-list" id="tile-announce-list"></div>
+      </div>
+    </div>
+
+    <div class="quick-links">
+      <div class="quick-link" id="quick-new-report"><span class="icon">📝</span>工事日報を作成</div>
+      <div class="quick-link" id="quick-search"><span class="icon">🔍</span>修理履歴を検索</div>
+      <div class="quick-link" id="quick-attendance-history"><span class="icon">🕒</span>勤怠履歴</div>
+      <div class="quick-link" id="quick-requests"><span class="icon">📮</span>申請・承認</div>
+      <div class="quick-link tile-wide hidden" id="quick-announce-admin"><span class="icon">⚙️</span>お知らせ管理(管理者)</div>
+    </div>
     <p id="voice-hint" class="hint hidden">
       🎤 このLINEアプリ内では音声入力が使えません。
       <a href="#" id="open-in-browser-link">ブラウザで開く</a>と音声入力が使えるようになります
       (もう一度ログインが必要です)。
     </p>
+  </section>
+
+  <!-- 工事日報メインメニュー(旧ホーム画面。ダッシュボードの「工事日報を作成」等から遷移) -->
+  <section id="screen-home" class="screen hidden">
+    <div class="step-header">
+      <button class="btn-link" data-back="screen-dashboard">← ホームに戻る</button>
+    </div>
+    <div id="user-info" class="user-info"></div>
+    <button class="btn btn-primary btn-large" id="btn-new-report" type="button">➕ 修理報告書を作成</button>
+    <button class="btn btn-secondary btn-large" id="btn-search" type="button">🔍 過去の報告書を検索</button>
+  </section>
+
+  <!-- 勤怠履歴(月次) -->
+  <section id="screen-attendance-history" class="screen hidden">
+    <div class="step-header">
+      <button class="btn-link" data-back="screen-dashboard">← ホームに戻る</button>
+    </div>
+    <h2>勤怠履歴</h2>
+    <div class="month-nav">
+      <button class="btn-small" id="btn-history-prev">← 前月</button>
+      <b id="history-month-label"></b>
+      <button class="btn-small" id="btn-history-next">翌月 →</button>
+    </div>
+    <div class="history-row header"><div>日付</div><div>出勤</div><div>退勤</div><div>残業</div></div>
+    <div id="history-rows"></div>
+    <div class="history-totals">
+      実働合計: <b id="history-total-work">0h00m</b>　残業合計: <b id="history-total-overtime">0h00m</b>
+    </div>
+    <button class="btn btn-secondary" id="btn-history-csv" type="button">📄 CSVをダウンロード</button>
+    <button class="btn btn-secondary" id="btn-history-pdf" type="button">🖨️ PDFを作成</button>
+  </section>
+
+  <!-- 申請・承認 -->
+  <section id="screen-requests" class="screen hidden">
+    <div class="step-header">
+      <button class="btn-link" data-back="screen-dashboard">← ホームに戻る</button>
+    </div>
+    <h2>申請・承認</h2>
+
+    <div class="tile" id="leave-balance-card">
+      <div class="tile-label">🌴 有給残日数</div>
+      <div class="tile-value" id="leave-balance-value">--</div>
+      <div class="tile-sub" id="leave-balance-sub"></div>
+      <div class="tile-sub" id="leave-balance-hire-date-note"></div>
+    </div>
+
+    <details style="margin-top:10px;">
+      <summary style="cursor:pointer;color:var(--text-sub);font-size:13px;">入社日を設定・修正する</summary>
+      <label>入社日<br><input id="hire-date-input" type="date"></label>
+      <button class="btn btn-secondary" id="btn-hire-date-save" type="button">保存する</button>
+    </details>
+
+    <div class="section-title">申請する</div>
+    <label>種別<br>
+      <select id="req-type">
+        <option>有給</option><option>半休</option><option>時間休</option><option>特別休暇</option><option>その他</option>
+      </select>
+    </label>
+    <label id="req-hours-row" class="hidden">時間数(時間休のみ)<br><input id="req-hours" type="number" min="0.5" step="0.5" placeholder="例: 2"></label>
+    <label>対象日<br><input id="req-target-date" type="date"></label>
+    <label>内容<br><textarea id="req-content" rows="2" placeholder="例: 私用のため"></textarea></label>
+    <button class="btn btn-primary" id="btn-req-submit" type="button">申請する</button>
+
+    <div class="section-title">申請一覧</div>
+    <div id="req-list"></div>
+  </section>
+
+  <!-- お知らせ管理(管理者のみ) -->
+  <section id="screen-announce-admin" class="screen hidden">
+    <div class="step-header">
+      <button class="btn-link" data-back="screen-dashboard">← ホームに戻る</button>
+    </div>
+    <h2>お知らせ管理</h2>
+    <label>タイトル<br><input id="ann-title" type="text"></label>
+    <label>本文<br><textarea id="ann-body" rows="3"></textarea></label>
+    <label>掲載開始日<br><input id="ann-start" type="date"></label>
+    <label>掲載終了日(空欄で無期限)<br><input id="ann-end" type="date"></label>
+    <button class="btn btn-primary" id="btn-ann-submit" type="button">登録する</button>
   </section>
 
   <!-- 入力①基本情報 -->
@@ -240,6 +393,8 @@
 <script src="camera.js"></script>
 <script src="signature.js"></script>
 <script src="voice.js"></script>
+<script src="home.js"></script>
+<script src="attendance.js"></script>
 <script src="app.js"></script>
 </body>
 </html>
