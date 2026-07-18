@@ -76,6 +76,15 @@ function initApp_() {
       document.getElementById('app').classList.remove('hidden');
       document.getElementById('att-month').value = todayYearMonth_();
       loadDashboardTab_();
+    }).catch(function (err) {
+      // ブラウザに残っていた古いLIFFセッションのidTokenが期限切れの場合、エラー画面を出す前に
+      // ログアウト→再ログインさせて自動的に復旧させる(毎回ユーザーに手動再読み込みさせないため)。
+      if (err && err.message && err.message.indexOf('expired') !== -1) {
+        liff.logout();
+        liff.login({ redirectUri: location.href });
+        return;
+      }
+      throw err;
     });
   }).catch(showError_);
 }
@@ -319,4 +328,3 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 window.addEventListener('load', initApp_);
-
