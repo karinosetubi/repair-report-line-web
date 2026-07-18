@@ -1,1 +1,177 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>狩野設備工業 管理画面</title>
+  <link rel="stylesheet" href="admin.css">
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+</head>
+<body>
+
+<div id="screen-loading" class="center-box">
+  <div class="spinner"></div>
+  <p>読み込み中...</p>
+</div>
+
+<div id="screen-denied" class="center-box hidden">
+  <p>⚠️ この画面は管理者のみ利用できます。</p>
+</div>
+
+<div id="screen-error" class="center-box hidden">
+  <p>⚠️ エラーが発生しました</p>
+  <p id="error-message" style="color:var(--danger)"></p>
+</div>
+
+<div id="app" class="layout hidden">
+  <aside class="sidebar">
+    <div class="sidebar-logo">狩野設備工業<small>社内管理システム</small></div>
+    <div class="nav-item active" data-tab="tab-dashboard"><span class="icon">📊</span>ダッシュボード</div>
+    <div class="nav-item" data-tab="tab-attendance"><span class="icon">🕒</span>勤怠一覧</div>
+    <div class="nav-item" data-tab="tab-requests"><span class="icon">📮</span>申請承認</div>
+    <div class="nav-item" data-tab="tab-announce"><span class="icon">📢</span>お知らせ管理</div>
+    <div class="sidebar-footer" id="sidebar-user"></div>
+  </aside>
+
+  <div class="main">
+    <div class="topbar">
+      <h1 id="topbar-title">ダッシュボード</h1>
+      <div class="topbar-right">
+        <button class="icon-btn" id="btn-refresh" title="更新">🔄</button>
+        <span id="topbar-user"></span>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- ダッシュボード -->
+      <section id="tab-dashboard">
+        <div class="card-row">
+          <div class="card">
+            <h3>本日の出勤状況</h3>
+            <div class="donut-row">
+              <div class="donut" id="today-donut" data-pct="0%"></div>
+              <div class="donut-legend">
+                <div><span class="dot" style="background:var(--success)"></span>出勤中/休憩中 <b id="legend-working">0</b>人</div>
+                <div><span class="dot" style="background:var(--text-sub)"></span>退勤済 <b id="legend-done">0</b>人</div>
+                <div><span class="dot" style="background:var(--border)"></span>未出勤 <b id="legend-absent">0</b>人</div>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <h3>承認待ち申請</h3>
+            <div class="stat-big" id="stat-pending">0</div>
+            <div class="stat-sub">件</div>
+          </div>
+          <div class="card">
+            <h3>今月の集計</h3>
+            <div class="stat-big" id="stat-month-work">0h</div>
+            <div class="stat-sub">実働合計 / 残業合計 <b id="stat-month-overtime">0h</b> / 工事件数 <b id="stat-month-reports">0</b>件</div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header"><h2>本日の勤怠一覧</h2></div>
+          <table>
+            <thead><tr><th>社員番号</th><th>氏名</th><th>状態</th><th>出勤</th><th>退勤</th></tr></thead>
+            <tbody id="today-table-body"></tbody>
+          </table>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header"><h2>承認待ち申請</h2></div>
+          <table>
+            <thead><tr><th>氏名</th><th>種別</th><th>対象日</th><th>内容</th><th>操作</th></tr></thead>
+            <tbody id="pending-req-table-body"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- 勤怠一覧 -->
+      <section id="tab-attendance" class="hidden">
+        <div class="panel">
+          <div class="panel-header">
+            <h2>勤怠一覧</h2>
+            <div class="panel-tools">
+              <input type="month" id="att-month">
+              <select id="att-staff"><option value="ALL">全社員</option></select>
+              <button class="btn btn-secondary" id="btn-att-csv">📄 CSV出力</button>
+              <button class="btn btn-secondary" id="btn-att-pdf">🖨️ PDF出力</button>
+              <button class="btn btn-primary" id="btn-att-search">表示</button>
+            </div>
+          </div>
+          <table>
+            <thead><tr><th>日付</th><th>社員番号</th><th>氏名</th><th>出勤</th><th>退勤</th><th>休憩(分)</th><th>実働(分)</th><th>残業(分)</th><th>曜日</th></tr></thead>
+            <tbody id="att-table-body"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- 申請承認 -->
+      <section id="tab-requests" class="hidden">
+        <div class="panel">
+          <div class="panel-header">
+            <h2>申請一覧</h2>
+            <div class="panel-tools">
+              <select id="req-status-filter">
+                <option value="">すべて</option>
+                <option value="申請中">申請中</option>
+                <option value="承認">承認</option>
+                <option value="却下">却下</option>
+              </select>
+            </div>
+          </div>
+          <table>
+            <thead><tr><th>氏名</th><th>種別</th><th>対象日</th><th>内容</th><th>状態</th><th>申請日時</th><th>操作</th></tr></thead>
+            <tbody id="req-table-body"></tbody>
+          </table>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header">
+            <h2>有給付与「要確認」一覧</h2>
+            <div class="panel-tools" style="font-size:12px;color:var(--text-sub);max-width:520px;">
+              出勤率8割判定に必要な1年分の勤怠データが揃っていない社員です。実績を踏まえて手動で決定してください。
+            </div>
+          </div>
+          <table>
+            <thead><tr><th>氏名</th><th>基準日</th><th>勤続区分</th><th>法定日数</th><th>操作</th></tr></thead>
+            <tbody id="leave-review-table-body"></tbody>
+          </table>
+          <div id="leave-missing-hire-date" style="margin-top:10px;font-size:12px;color:var(--text-sub);"></div>
+        </div>
+      </section>
+
+      <!-- お知らせ管理 -->
+      <section id="tab-announce" class="hidden">
+        <div class="panel">
+          <div class="panel-header"><h2>お知らせを登録</h2></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;max-width:640px;">
+            <label>タイトル<br><input type="text" id="ann-title" style="width:100%;padding:8px;margin-top:4px;border:1px solid var(--border);border-radius:8px;background:var(--surface);color:var(--text);"></label>
+            <label>掲載開始日<br><input type="date" id="ann-start" style="width:100%;padding:8px;margin-top:4px;border:1px solid var(--border);border-radius:8px;background:var(--surface);color:var(--text);"></label>
+            <label>本文<br><textarea id="ann-body" rows="3" style="width:100%;padding:8px;margin-top:4px;border:1px solid var(--border);border-radius:8px;background:var(--surface);color:var(--text);"></textarea></label>
+            <label>掲載終了日(空欄で無期限)<br><input type="date" id="ann-end" style="width:100%;padding:8px;margin-top:4px;border:1px solid var(--border);border-radius:8px;background:var(--surface);color:var(--text);"></label>
+          </div>
+          <button class="btn btn-primary" id="btn-ann-submit" style="margin-top:14px;">登録する</button>
+        </div>
+        <div class="panel">
+          <div class="panel-header"><h2>現在掲載中のお知らせ</h2></div>
+          <div id="ann-active-list"></div>
+        </div>
+        <div class="panel">
+          <div class="panel-header">
+            <h2>祝日マスタ</h2>
+            <div class="panel-tools"><button class="btn btn-secondary" id="btn-sync-holidays">内閣府から最新の祝日データを取得</button></div>
+          </div>
+          <div id="holiday-sync-result" class="empty-note">内閣府公式サイトの祝日CSVを取得し、勤怠の休日判定に反映します。</div>
+        </div>
+      </section>
+
+    </div>
+  </div>
+</div>
+
+<script src="admin.js"></script>
+</body>
+</html>
 
