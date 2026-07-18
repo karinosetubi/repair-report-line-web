@@ -121,18 +121,57 @@
       </div>
     </div>
 
+    <div class="section-title">修理報告書システム</div>
     <div class="quick-links">
       <div class="quick-link" id="quick-new-report"><span class="icon">📝</span>工事日報を作成</div>
       <div class="quick-link" id="quick-search"><span class="icon">🔍</span>修理履歴を検索</div>
+      <div class="quick-link" id="quick-ai-consult"><span class="icon">🤖</span>AI相談</div>
+      <div class="quick-link" id="quick-pdf-search"><span class="icon">📄</span>PDF検索</div>
       <div class="quick-link" id="quick-attendance-history"><span class="icon">🕒</span>勤怠履歴</div>
       <div class="quick-link" id="quick-requests"><span class="icon">📮</span>申請・承認</div>
       <div class="quick-link tile-wide hidden" id="quick-announce-admin"><span class="icon">⚙️</span>お知らせ管理(管理者)</div>
     </div>
+
+    <div class="section-title">その他のシステム(準備中)</div>
+    <div class="quick-links">
+      <div class="quick-link disabled"><span class="icon">🏗️</span>工事管理<span class="soon-badge">準備中</span></div>
+      <div class="quick-link disabled"><span class="icon">👥</span>顧客管理<span class="soon-badge">準備中</span></div>
+      <div class="quick-link disabled"><span class="icon">📦</span>在庫管理<span class="soon-badge">準備中</span></div>
+      <div class="quick-link disabled"><span class="icon">🖼️</span>写真・動画管理<span class="soon-badge">準備中</span></div>
+      <div class="quick-link disabled"><span class="icon">📚</span>メーカー資料検索<span class="soon-badge">準備中</span></div>
+      <div class="quick-link disabled"><span class="icon">🧑‍💼</span>社員管理<span class="soon-badge">準備中</span></div>
+      <div class="quick-link disabled"><span class="icon">⚙️</span>設定<span class="soon-badge">準備中</span></div>
+    </div>
+
     <p id="voice-hint" class="hint hidden">
       🎤 このLINEアプリ内では音声入力が使えません。
       <a href="#" id="open-in-browser-link">ブラウザで開く</a>と音声入力が使えるようになります
       (もう一度ログインが必要です)。
     </p>
+  </section>
+
+  <!-- AI修理相談 -->
+  <section id="screen-ai-consult" class="screen hidden">
+    <div class="step-header">
+      <button class="btn-link" data-back="screen-dashboard">← ホームに戻る</button>
+    </div>
+    <h2>AI修理相談</h2>
+    <p class="hint">過去の修理履歴データを踏まえてAIが原因・対処法を提案します(過去データに無い部品名・原因は創作しません)。</p>
+    <label>相談内容<br><textarea id="ai-consult-keyword" rows="2" placeholder="例: エコキュートからお湯が出ない"></textarea></label>
+    <button class="btn btn-primary" id="btn-ai-consult-submit" type="button">相談する</button>
+    <div id="ai-consult-result" class="ai-result"></div>
+  </section>
+
+  <!-- PDF内検索 -->
+  <section id="screen-pdf-search" class="screen hidden">
+    <div class="step-header">
+      <button class="btn-link" data-back="screen-dashboard">← ホームに戻る</button>
+    </div>
+    <h2>PDF内検索</h2>
+    <p class="hint">帳票PDFの本文からキーワードを全文検索します(自社生成PDFのみが対象)。</p>
+    <input id="pdf-search-keyword" type="text" placeholder="キーワードを入力">
+    <button class="btn btn-primary" id="btn-pdf-search-submit" type="button">検索</button>
+    <div id="pdf-search-result-list" class="search-result-list"></div>
   </section>
 
   <!-- 工事日報メインメニュー(旧ホーム画面。ダッシュボードの「工事日報を作成」等から遷移) -->
