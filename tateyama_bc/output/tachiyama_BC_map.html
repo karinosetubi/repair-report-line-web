@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>立山BC軌跡マップ</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<style>
+:root{--bg:#f7f7f5;--panel:#fff;--fg:#1d1d1b;--muted:#6b6b66;--line:#e2e2dc;--warn:#9a5b00;--warnbg:#fff4e0}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#161615;--panel:#20201e;--fg:#ececea;--muted:#a3a39d;--line:#34342f;--warn:#ffc46b;--warnbg:#3a2c12}}
+:root[data-theme="dark"]{--bg:#161615;--panel:#20201e;--fg:#ececea;--muted:#a3a39d;--line:#34342f;--warn:#ffc46b;--warnbg:#3a2c12}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.5 system-ui,-apple-system,"Hiragino Sans","Noto Sans JP",sans-serif}
+header{padding:16px}
+h1{font-size:20px;margin:0 0 4px}
+.sub{color:var(--muted);font-size:13px}
+.wrap{display:grid;grid-template-columns:1fr 320px;gap:12px;padding:0 16px 16px}
+@media (max-width:860px){.wrap{grid-template-columns:1fr}}
+#map{height:70vh;min-height:420px;border:1px solid var(--line);border-radius:8px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:12px;overflow:auto;max-height:70vh}
+.panel h2{font-size:14px;margin:8px 0}
+label{display:flex;align-items:center;gap:6px;margin:2px 0;cursor:pointer}
+.sw{display:inline-block;width:22px;height:4px;border-radius:2px}
+.notice{background:var(--warnbg);color:var(--warn);border-radius:8px;padding:10px 12px;margin:0 16px 12px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{border-bottom:1px solid var(--line);padding:6px;text-align:left;vertical-align:top}
+th{color:var(--muted);font-weight:600}
+.tablewrap{margin:0 16px 24px;background:var(--panel);border:1px solid var(--line);border-radius:8px;overflow-x:auto}
+a{color:inherit}
+.muted{color:var(--muted)}
+</style>
+</head>
+<body>
+<header>
+  <h1>立山BC 実測GPS軌跡マップ（2020〜2025年 11/25以降）</h1>
+  <div class="sub">表示しているのはGPXに含まれる実測点だけです。推定した滑走ラインは描いていません。<br>
+  線の色＝年度、実線＝滑走、破線＝登り、点線＝その他。登りと滑走は時刻と標高から自動判定しています。<span id="gen"></span></div>
+</header>
+<div id="notice"></div>
+<div class="wrap">
+  <div id="map"></div>
+  <div class="panel">
+    <h2>色分け</h2>
+    <label><input type="radio" name="mode" value="year" checked> 年度別</label>
+    <label><input type="radio" name="mode" value="record"> 記録別</label>
+    <h2>区間</h2>
+    <div id="segs"></div>
+    <h2>年度</h2>
+    <div id="years"></div>
+    <h2>記録</h2>
+    <div id="recs"></div>
+    <label><input type="checkbox" id="showdup"> 近似重複の記録も表示</label>
+  </div>
+</div>
+<div class="tablewrap">
+<table>
+<thead><tr><th>記録ID</th><th>日付</th><th>情報源</th><th>記録者</th><th>活動名</th><th>滑走エリア</th><th>期間判定</th><th>GPS</th><th>取得不能の理由</th></tr></thead>
+<tbody id="tbody"></tbody>
+</table>
+</div>
+<script>
+const D={"features": [], "records": [{"rid": "Y2025-1124-karimero", "source": "YAMAP", "url": "https://yamap.com/activities/44603672", "date": "2025-11-24〜2025-11-25", "author": "カリメロ", "title": "立山BC", "areas": "室堂周辺（2日目は悪天のため雷鳥温泉へ移動）※滑走斜面の詳細は未確認", "period": "一部対象（11/25のみ対象期間）", "gps": "未取得", "reason": "コンテナのネットワークポリシーでyamap.comへの接続不可。YAMAPのGPXダウンロードはログインが必要で、所有者が公開を許可している場合のみ可能", "season": null, "color": null}, {"rid": "Y2025-1124-takupaku", "source": "YAMAP", "url": "https://yamap.com/tags/35162/activities", "date": "2025-11-24〜2025-11-25", "author": "Takupaku", "title": "立山B.C.", "areas": "立山・雄山・浄土山エリア（滑走斜面は未確認）", "period": "一部対象（25日以降の行動を要確認）", "gps": "未取得", "reason": "活動ページの個別URLを特定できていない（タグ一覧ページで確認）。yamap.comへの接続不可", "season": null, "color": null}, {"rid": "Y2025-1122-purapura", "source": "YAMAP", "url": "", "date": "2025-11-22〜2025-11-24", "author": "不明", "title": "立山ぷらぷらBC", "areas": "立山周辺", "period": "対象外（11/24終了）", "gps": "対象外", "reason": "対象期間外", "season": null, "color": null}, {"rid": "Y2025-1122-aki2days", "source": "YAMAP", "url": "", "date": "2025-11-22〜2025-11-23", "author": "不明", "title": "秋の立山BC 2days", "areas": "立山", "period": "対象外", "gps": "対象外", "reason": "対象期間外", "season": null, "color": null}, {"rid": "R2023-1121-6205979", "source": "ヤマレコ", "url": "https://www.yamareco.com/modules/yamareco/detail-6205979.html", "date": "2023-11-21〜2023-11-22", "author": "不明", "title": "11月の立山初滑り：スプリットボードとテレマークスキー", "areas": "雷鳥沢中腹（2490m付近）・浄土橋・浄土沢・浄土山", "period": "対象外（11/25より前）", "gps": "対象外", "reason": "対象期間外（比較用の参考記録）", "season": null, "color": null}, {"rid": "B2021-1129-acy", "source": "アルパインクラブ横浜（ブログ）", "url": "https://acy.jpn.org/2021/12/06/2021-11-29-30%E3%80%80%E7%AB%8B%E5%B1%B1%E3%82%B9%E3%82%AD%E3%83%BC/", "date": "2021-11-29〜2021-11-30", "author": "アルパインクラブ横浜", "title": "2021/11/29-30 立山スキー", "areas": "雷鳥沢方面（2日目は移動しながら滑走）", "period": "対象", "gps": "未取得", "reason": "ブログ記事のため公開GPXは無い見込み。ガイド会社名は未確認（JUNRINAかどうか要確認）", "season": null, "color": null}, {"rid": "B2020-1128-mamezou", "source": "マメゾウ日記（ブログ）", "url": "http://mamezou.cocolog-nifty.com/mamezoudiary/2020/12/post-775167.html", "date": "2020-11-28〜2020-11-29", "author": "マメゾウ", "title": "立山初滑り：2020-2021シーズンはテント泊にて", "areas": "室堂周辺（テントは室堂ターミナル北側の指定地）", "period": "対象", "gps": "未取得", "reason": "ブログ記事のため公開GPXは無い見込み", "season": null, "color": null}, {"rid": "B2020-1123-ginza", "source": "銀座山の会（ブログ）", "url": "https://ginza-yamanokai.com/2020/11/23/%E7%AB%8B%E5%B1%B1%E3%80%80%E9%9B%B7%E9%B3%A5%E6%B2%A2%E3%80%81%E5%B1%B1%E5%B4%8E%E3%82%AB%E3%83%BC%E3%83%AB/", "date": "2020-11-23〜2020-11-25", "author": "銀座山の会", "title": "立山 雷鳥沢、山崎カール 山スキー", "areas": "雷鳥沢（剱御前付近から）・山崎カール", "period": "一部対象（11/25のみ）", "gps": "未取得", "reason": "ブログ記事のため公開GPXは無い見込み", "season": null, "color": null}, {"rid": "R2022-1127-4957439", "source": "ヤマレコ", "url": "https://www.yamareco.com/modules/yamareco/detail-4957439.html", "date": "2022-11-27〜2022-11-27", "author": "不明", "title": "立山(雄山)", "areas": "室堂〜一ノ越〜雄山", "period": "対象外（滑走記録ではない）", "gps": "対象外", "reason": "BC滑走ではない", "season": null, "color": null}, {"rid": "U2022-1124-unknown", "source": "不明", "url": "", "date": "2022-11-24〜2022-11-26", "author": "不明", "title": "立山（2022年11月24〜26日）", "areas": "不明", "period": "要確認", "gps": "未取得", "reason": "URL未特定。BC滑走ログかどうか未確認（依頼文6章の既知情報）", "season": null, "color": null}, {"rid": "Y2020-1114-unknown", "source": "不明", "url": "", "date": "2020-11-14〜2020-11-14", "author": "不明", "title": "立山BC（2020年11月14日）", "areas": "立山", "period": "対象外", "gps": "対象外", "reason": "対象期間外", "season": null, "color": null}], "years": {"2020": "#1f77b4", "2021": "#ff7f0e", "2022": "#2ca02c", "2023": "#d62728", "2024": "#9467bd", "2025": "#8c564b"}, "segLabel": {"descent": "滑走", "ascent": "登り", "other": "平坦・休憩・歩き下り", "unknown": "区別不可（時刻なし）"}, "issues": [], "generated": "2026-11-05 18:39"};
+document.getElementById('gen').textContent=' 生成: '+D.generated;
+const map=L.map('map').setView([36.585,137.605],13);
+L.tileLayer('https://cyberjapandata.gsi.go.jp/xyz/std/{z}/{x}/{y}.png',{maxZoom:18,attribution:'<a href="https://maps.gsi.go.jp/development/ichiran.html">地理院タイル</a>'}).addTo(map);
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const nTracks=new Set(D.features.map(f=>f.file)).size;
+const nb=document.getElementById('notice');
+if(nTracks===0){nb.innerHTML='<div class="notice">実測GPXはまだ0件です。GPXを <code>tateyama_bc/gpx_input/</code> に置いて <code>python3 build.py</code> を実行すると、ここに軌跡が表示されます。下の表は候補記録と、GPSが取得できない理由の一覧です。</div>';}
+else if(D.issues.length){nb.innerHTML='<div class="notice">取り込み時の注意: '+D.issues.map(i=>esc(i.file)+' — '+esc(i.msg)).join('<br>')+'</div>';}
+const palette=['#1f77b4','#ff7f0e','#2ca02c','#d62728','#9467bd','#8c564b','#e377c2','#17becf','#bcbd22','#7f7f7f'];
+const rids=[...new Set(D.features.map(f=>f.rid))];
+const recColor=Object.fromEntries(rids.map((r,i)=>[r,palette[i%palette.length]]));
+const dash={descent:null,ascent:'8 6',other:'2 5',unknown:null};
+const state={mode:'year',segs:new Set(Object.keys(D.segLabel)),years:new Set(Object.keys(D.years).map(Number).concat([null])),recs:new Set(rids),dup:false};
+const layer=L.layerGroup().addTo(map);
+function draw(){
+  layer.clearLayers();const b=[];
+  D.features.forEach(f=>{
+    if(!state.segs.has(f.seg)||!state.years.has(f.season)||!state.recs.has(f.rid))return;
+    if(f.dup&&!state.dup)return;
+    const c=state.mode==='year'?f.color:recColor[f.rid];
+    const pl=L.polyline(f.coords,{color:c,weight:f.seg==='descent'?4:3,opacity:f.seg==='other'?0.6:0.9,dashArray:dash[f.seg]});
+    const r=D.records.find(x=>x.rid===f.rid)||{};
+    pl.bindPopup('<b>'+esc(r.title||f.file)+'</b><br>'+esc(r.date)+'<br>'+esc(r.author)+'<br>区間: '+esc(D.segLabel[f.seg])+'<br>ファイル: '+esc(f.file)+(r.url?'<br><a href="'+esc(r.url)+'" target="_blank" rel="noopener">元の記録</a>':''));
+    pl.addTo(layer);b.push(...f.coords);
+  });
+  if(b.length)map.fitBounds(b,{padding:[20,20]});
+}
+function chk(container,items,set,labelFn,colorFn){
+  const el=document.getElementById(container);
+  el.innerHTML=items.map((v,i)=>'<label><input type="checkbox" data-i="'+i+'" checked> '+(colorFn?'<span class="sw" style="background:'+colorFn(v)+'"></span>':'')+esc(labelFn(v))+'</label>').join('')||'<span class="muted">なし</span>';
+  el.querySelectorAll('input').forEach(inp=>inp.addEventListener('change',()=>{const v=items[+inp.dataset.i];inp.checked?set.add(v):set.delete(v);draw();}));
+}
+chk('segs',Object.keys(D.segLabel),state.segs,k=>D.segLabel[k]);
+const yrs=[...new Set(D.features.map(f=>f.season))].sort();
+chk('years',yrs,state.years,y=>y?y+'年度':'年度不明',y=>D.years[y]||'#555');
+chk('recs',rids,state.recs,r=>(D.records.find(x=>x.rid===r)||{}).title||r,r=>recColor[r]);
+document.querySelectorAll('input[name=mode]').forEach(i=>i.addEventListener('change',e=>{state.mode=e.target.value;draw();}));
+document.getElementById('showdup').addEventListener('change',e=>{state.dup=e.target.checked;draw();});
+document.getElementById('tbody').innerHTML=D.records.map(r=>'<tr><td>'+esc(r.rid)+'</td><td>'+esc(r.date)+'</td><td>'+esc(r.source)+'</td><td>'+esc(r.author)+'</td><td>'+(r.url?'<a href="'+esc(r.url)+'" target="_blank" rel="noopener">'+esc(r.title)+'</a>':esc(r.title))+'</td><td>'+esc(r.areas)+'</td><td>'+esc(r.period)+'</td><td>'+(r.color?'<span class="sw" style="background:'+r.color+'"></span> ':'')+esc(r.gps)+'</td><td>'+esc(r.reason)+'</td></tr>').join('');
+draw();
+</script>
+</body>
+</html>
