@@ -719,7 +719,8 @@ def write_xlsx(path, records, tracks, issues):
         ["区分判定", f"{WINDOW_S}秒窓の鉛直速度が{DESCENT_VZ}m/s以下かつ水平速度{DESCENT_HSPEED}m/s以上で滑走、+{ASCENT_VZ}m/s以上で登り、それ以外はその他。{MIN_RUN_S}秒未満の区間は前後に吸収。時刻のないGPXは区別不可。"],
         ["重複整理", f"点列が完全に一致するものは除外。開始時刻の差が{NEAR_DUP_START_S // 60}分以内で、互いに{int(NEAR_DUP_RATIO * 100)}%以上の点が{NEAR_DUP_DIST_M}m以内にあるものは近似重複とし、統合GPXでは代表のみ採用。"],
         ["座標の扱い", "出力するのはGPXファイルの実測点のみ。補間・推定座標は作らない。rte（計画ルート）は実測ではないため取り込まない。"],
-        ["JUNRINA", "Web検索では、JUNRINA（junrina mountain service）は越後湯沢を拠点とするガイド。立山でのツアー記録は検索で確認できなかった。公式サイト・SNSは今回の環境から閲覧できず、未確認。"],
+        ["JUNRINA", "越後湯沢を拠点とするガイド（junrina mountain service）。11月の初滑り立山BCツアー（雷鳥荘泊の2日間）を催行している（https://www.junrina.com/tateyamabc）。ブログには「初滑りオープニングパウダー」などの立山の記事がある。滑走斜面や催行日は、サイトに接続できず未確認。"],
+        ["ネットワーク", "この調査環境からは yamap.com・www.yamareco.com・www.junrina.com に接続できず、Web検索の要約だけで一覧を作成した。数値は検索結果に表示された値。"],
     ]
     sheet(ws5, ["項目", "内容"], notes, [14, 110])
     wb.save(path)
